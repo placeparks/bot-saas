@@ -61,7 +61,7 @@ model Instance {
   userId        String          @unique
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  containerId   String          @unique
+  containerId   String?         @unique
   containerName String          @unique
   port          Int             @unique
   status        InstanceStatus
