@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,8 +24,15 @@ const steps = [
 
 export default function OnboardPage() {
   const router = useRouter()
+  const { status } = useSession()
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/login')
+    }
+  }, [status, router])
 
   const [config, setConfig] = useState({
     plan: 'MONTHLY',
