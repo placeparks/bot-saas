@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { deployInstance } from '@/lib/railway/deploy'
 import { encrypt } from '@/lib/utils/encryption'
@@ -13,6 +13,7 @@ export const runtime = 'nodejs'
 export async function POST(req: Request) {
   const body = await req.text()
   const signature = headers().get('stripe-signature')!
+  const stripe = getStripe()
 
   let event: Stripe.Event
 
