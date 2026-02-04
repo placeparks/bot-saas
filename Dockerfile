@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system nodejs && adduser -S nodejs -G nodejs
+RUN groupadd --system nodejs && useradd --system --gid nodejs --create-home nodejs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nodejs:nodejs /app/.next/standalone ./
