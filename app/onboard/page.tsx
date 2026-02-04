@@ -12,9 +12,6 @@ import PlanSelection from '@/components/forms/plan-selection'
 import ProviderConfig from '@/components/forms/provider-config'
 import ChannelSelector from '@/components/forms/channel-selector'
 import SkillsConfig from '@/components/forms/skills-config'
-import { loadStripe } from '@stripe/stripe-js'
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 const steps = [
   { id: 1, name: 'Choose Plan', description: 'Select your subscription' },
@@ -86,14 +83,12 @@ export default function OnboardPage() {
         return
       }
 
-      const { sessionId } = data
-      const stripe = await stripePromise
-
-      if (stripe && sessionId) {
-        await stripe.redirectToCheckout({ sessionId })
-      } else {
-        alert('Failed to initialize checkout')
+      if (data.url) {
+        window.location.href = data.url
+        return
       }
+
+      alert('Failed to initialize checkout')
     } catch (error) {
       console.error('Checkout error:', error)
       alert('Checkout failed. Please try again.')
