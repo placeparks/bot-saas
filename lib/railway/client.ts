@@ -168,6 +168,29 @@ export class RailwayClient {
     `, { id: serviceId })
   }
 
+  /** Find a service by name in the project. Returns service ID if found. */
+  async findServiceByName(name: string): Promise<string | null> {
+    const { project } = await this.graphql<{
+      project: { services: { edges: { node: { id: string; name: string } }[] } }
+    }>(`
+      query project($id: String!) {
+        project(id: $id) {
+          services {
+            edges {
+              node {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    `, { id: this.projectId })
+
+    const match = project.services.edges.find(e => e.node.name === name)
+    return match?.node.id ?? null
+  }
+
   /** Return the most recent deployment for a service. */
   async getLatestDeployment(serviceId: string): Promise<Deployment | null> {
     const { deployments } = await this.graphql<{

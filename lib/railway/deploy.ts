@@ -32,16 +32,28 @@ export async function deployInstance(
   // --- Clean up any pre-existing instance ---
   const existing = await prisma.instance.findUnique({ where: { userId } })
   if (existing) {
-    console.log(`⚠️  Cleaning up existing instance for user ${userId}...`)
+    console.log(`⚠️  Cleaning up existing DB instance for user ${userId}...`)
     try {
       if (existing.containerId) {
         await railway.deleteService(existing.containerId)
       }
       await prisma.instance.delete({ where: { id: existing.id } })
-      console.log('✅ Cleaned up')
+      console.log('✅ DB instance cleaned up')
     } catch (err) {
-      console.warn('⚠️  Cleanup error (continuing):', err)
+      console.warn('⚠️  DB cleanup error (continuing):', err)
     }
+  }
+
+  // --- Also clean up orphaned Railway service by name (in case previous deploy failed mid-way) ---
+  try {
+    const orphanedServiceId = await railway.findServiceByName(serviceName)
+    if (orphanedServiceId) {
+      console.log(`⚠️  Found orphaned Railway service ${serviceName}, deleting...`)
+      await railway.deleteService(orphanedServiceId)
+      console.log('✅ Orphaned service deleted')
+    }
+  } catch (err) {
+    console.warn('⚠️  Orphan cleanup error (continuing):', err)
   }
 
   // --- Create placeholder DB record ---
