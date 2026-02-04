@@ -70,8 +70,31 @@ export class RailwayClient {
     return json.data
   }
 
+  /** Verify token has access to the project (simple read test). */
+  async verifyAccess(): Promise<void> {
+    console.log('[Railway] Verifying token access to project...')
+    const { project } = await this.graphql<{ project: { name: string } }>(`
+      query project($id: String!) {
+        project(id: $id) {
+          name
+        }
+      }
+    `, { id: this.projectId })
+    console.log(`[Railway] ✅ Token has access to project: ${project.name}`)
+  }
+
   /** Create a service from a Docker image. Railway auto-deploys on creation. */
   async createService(name: string, image: string, env: Record<string, string>): Promise<{ id: string }> {
+    // First verify we have access
+    await this.verifyAccess()
+
+    console.log('[Railway] Creating service with input:', JSON.stringify({
+      projectId: this.projectId,
+      name,
+      source: { image },
+      variableCount: Object.keys(env).length,
+    }))
+
     const { serviceCreate } = await this.graphql<{ serviceCreate: { id: string } }>(`
       mutation serviceCreate($input: ServiceCreateInput!) {
         serviceCreate(input: $input) {
