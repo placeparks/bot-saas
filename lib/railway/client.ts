@@ -38,6 +38,8 @@ export class RailwayClient {
     this.token = token
     this.projectId = projectId
     this.environmentId = environmentId
+
+    console.log(`[Railway] token=${token.slice(0, 8)}…${token.slice(-4)} projectId=${projectId} envId=${environmentId}`)
   }
 
   private async graphql<T>(query: string, variables?: Record<string, any>): Promise<T> {
@@ -57,6 +59,7 @@ export class RailwayClient {
     const json: GraphQLResponse<T> = await res.json()
 
     if (json.errors?.length) {
+      console.error('[Railway] GraphQL errors:', JSON.stringify(json.errors))
       throw new Error(`Railway API: ${json.errors.map(e => e.message).join(', ')}`)
     }
 
