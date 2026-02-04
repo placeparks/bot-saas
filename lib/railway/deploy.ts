@@ -76,6 +76,8 @@ export async function deployInstance(
     const openclawConfig = generateOpenClawConfig(config)
     // Serialized config; the start command writes it to the expected file path
     envVars.OPENCLAW_CONFIG = JSON.stringify(openclawConfig)
+    // Gateway token required by OpenClaw (generate a random one per instance)
+    envVars.OPENCLAW_GATEWAY_TOKEN = crypto.randomUUID()
 
     // --- Create Railway service (image + env vars, auto-deploys) ---
     const { id: serviceId } = await railway.createService(
@@ -93,11 +95,13 @@ export async function deployInstance(
     // --- Override start command so the config JSON is written before OpenClaw starts ---
     // The auto-deploy triggered by createService may finish before this update lands;
     // redeployService below ensures the corrected command is actually used.
+    // NOTE: Railway runs containers as non-root, so we use /tmp instead of /root
     const openclawCmd = process.env.OPENCLAW_CMD || 'openclaw'
+    const configDir = '/tmp/.openclaw'
     const startCmd =
-      `mkdir -p /root/.openclaw && ` +
-      `printf '%s' "$OPENCLAW_CONFIG" > /root/.openclaw/openclaw.json && ` +
-      `exec ${openclawCmd}`
+      `mkdir -p ${configDir} && ` +
+      `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json && ` +
+      `exec ${openclawCmd} --config ${configDir}/openclaw.json`
 
     await railway.updateServiceInstance(serviceId, { startCommand: startCmd })
     await railway.redeployService(serviceId)
