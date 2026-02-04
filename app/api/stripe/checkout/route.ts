@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { stripe, PLANS } from '@/lib/stripe'
+import { getStripe, PLANS } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   try {
@@ -36,6 +39,7 @@ export async function POST(req: Request) {
     }
 
     // Create or get Stripe customer
+    const stripe = getStripe()
     let customerId = ''
 
     const existingSubscription = await prisma.subscription.findUnique({

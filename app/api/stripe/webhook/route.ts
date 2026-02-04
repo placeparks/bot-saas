@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { deployInstance } from '@/lib/railway/deploy'
 import { encrypt } from '@/lib/utils/encryption'
@@ -9,10 +9,12 @@ import { Plan, SubscriptionStatus, Prisma } from '@prisma/client'
 import { UserConfiguration } from '@/lib/openclaw/config-builder'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   const body = await req.text()
   const signature = headers().get('stripe-signature')!
+  const stripe = getStripe()
 
   let event: Stripe.Event
 
@@ -65,6 +67,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   console.log('🎉 WEBHOOK RECEIVED: checkout.session.completed')
   console.log('Session metadata:', session.metadata)
 
+  const stripe = getStripe()
   const userId = session.metadata?.userId
   const plan = session.metadata?.plan
 

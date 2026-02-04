@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -51,7 +52,18 @@ export default function RegisterPage() {
         return
       }
 
-      // Redirect to onboarding
+      // Auto sign-in after successful registration
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false
+      })
+
+      if (result?.error) {
+        router.push('/login')
+        return
+      }
+
       router.push('/onboard')
     } catch (err) {
       setError('An error occurred. Please try again.')

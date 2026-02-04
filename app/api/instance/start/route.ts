@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { startInstance } from '@/lib/railway/deploy'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   try {
