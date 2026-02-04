@@ -1,6 +1,6 @@
 # ──── Stage 1: install deps ─────────────────────────────────────────
 FROM node:18-alpine AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl1.1-compat
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -11,6 +11,7 @@ RUN npm ci
 # ──── Stage 2: build ────────────────────────────────────────────────
 FROM node:18-alpine AS builder
 WORKDIR /app
+RUN apk add --no-cache libc6-compat openssl1.1-compat
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -23,6 +24,7 @@ RUN npm run build
 # ──── Stage 3: production runtime ───────────────────────────────────
 FROM node:18-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache libc6-compat openssl1.1-compat
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
