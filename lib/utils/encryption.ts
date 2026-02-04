@@ -1,11 +1,19 @@
 import crypto from 'crypto'
 
 const ALGORITHM = 'aes-256-gcm'
-const KEY = Buffer.from(process.env.ENCRYPTION_KEY!, 'hex')
+
+function getKey(): Buffer {
+  const key = process.env.ENCRYPTION_KEY
+  if (!key) {
+    throw new Error('Missing ENCRYPTION_KEY')
+  }
+  return Buffer.from(key, 'hex')
+}
 
 export function encrypt(text: string): string {
+  const key = getKey()
   const iv = crypto.randomBytes(16)
-  const cipher = crypto.createCipheriv(ALGORITHM, KEY, iv)
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
 
   let encrypted = cipher.update(text, 'utf8', 'hex')
   encrypted += cipher.final('hex')
@@ -16,12 +24,13 @@ export function encrypt(text: string): string {
 }
 
 export function decrypt(encryptedText: string): string {
+  const key = getKey()
   const parts = encryptedText.split(':')
   const iv = Buffer.from(parts[0], 'hex')
   const authTag = Buffer.from(parts[1], 'hex')
   const encrypted = parts[2]
 
-  const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv)
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
   decipher.setAuthTag(authTag)
 
   let decrypted = decipher.update(encrypted, 'hex', 'utf8')
