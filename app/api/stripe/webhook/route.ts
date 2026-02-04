@@ -66,6 +66,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   console.log('🎉 WEBHOOK RECEIVED: checkout.session.completed')
   console.log('Session metadata:', session.metadata)
 
+  const stripe = getStripe()
   const userId = session.metadata?.userId
   const plan = session.metadata?.plan
 
