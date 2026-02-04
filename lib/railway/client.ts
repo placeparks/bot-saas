@@ -83,6 +83,23 @@ export class RailwayClient {
     console.log(`[Railway] ✅ Token has access to project: ${project.name}`)
   }
 
+  /** Set environment variables on a service. */
+  async setVariables(serviceId: string, env: Record<string, string>): Promise<void> {
+    console.log(`[Railway] Setting ${Object.keys(env).length} variables on service ${serviceId}`)
+    await this.graphql(`
+      mutation variableCollectionUpsert($input: VariableCollectionUpsertInput!) {
+        variableCollectionUpsert(input: $input)
+      }
+    `, {
+      input: {
+        projectId: this.projectId,
+        environmentId: this.environmentId,
+        serviceId,
+        variables: env,
+      },
+    })
+  }
+
   /** Create a service from a Docker image. Railway auto-deploys on creation. */
   async createService(name: string, image: string, env: Record<string, string>): Promise<{ id: string }> {
     // First verify we have access
@@ -92,9 +109,9 @@ export class RailwayClient {
       projectId: this.projectId,
       name,
       source: { image },
-      variableCount: Object.keys(env).length,
     }))
 
+    // Create service without variables first
     const { serviceCreate } = await this.graphql<{ serviceCreate: { id: string } }>(`
       mutation serviceCreate($input: ServiceCreateInput!) {
         serviceCreate(input: $input) {
@@ -106,9 +123,13 @@ export class RailwayClient {
         projectId: this.projectId,
         name,
         source: { image },
-        variables: env,
       },
     })
+
+    console.log(`[Railway] Service created: ${serviceCreate.id}`)
+
+    // Set variables separately
+    await this.setVariables(serviceCreate.id, env)
 
     return serviceCreate
   }
