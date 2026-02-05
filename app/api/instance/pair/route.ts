@@ -75,12 +75,19 @@ export async function POST(req: Request) {
       .replaceAll('{serviceName}', user.instance.containerName || '')
       .replaceAll('{projectId}', process.env.RAILWAY_PROJECT_ID || '')
       .replaceAll('{environmentId}', process.env.RAILWAY_ENVIRONMENT_ID || '')
+      .replaceAll('{token}', process.env.RAILWAY_TOKEN || '')
       .replaceAll('{command}', pairingCommand)
+
+    console.log('[Pairing] Executing command:', execCommand.replace(process.env.RAILWAY_TOKEN || '', '***TOKEN***'))
 
     const { stdout, stderr } = await exec(execCommand, {
       timeout: 30_000,
       windowsHide: true,
-      maxBuffer: 1024 * 1024
+      maxBuffer: 1024 * 1024,
+      env: {
+        ...process.env,
+        RAILWAY_TOKEN: process.env.RAILWAY_TOKEN
+      }
     })
 
     if (stderr && stderr.trim().length > 0) {
