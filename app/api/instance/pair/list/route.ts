@@ -52,63 +52,82 @@ export async function GET(req: Request) {
       )
     }
 
-    const template = process.env.OPENCLAW_PAIRING_EXEC_COMMAND
-    if (!template || !template.includes('{command}')) {
-      return NextResponse.json(
-        { error: 'Pairing exec command not configured' },
-        { status: 501 }
-      )
-    }
-
     const listCommand = `openclaw pairing list ${channel}`
-    const execCommand = template
-      .replaceAll('{serviceId}', user.instance.containerId)
-      .replaceAll('{serviceName}', user.instance.containerName || '')
-      .replaceAll('{projectId}', process.env.RAILWAY_PROJECT_ID || '')
-      .replaceAll('{environmentId}', process.env.RAILWAY_ENVIRONMENT_ID || '')
-      .replaceAll('{token}', process.env.RAILWAY_TOKEN || '')
-      .replaceAll('{command}', listCommand)
+    const cliCommand = listCommand
 
-    console.log('[Pairing List] Executing command:', execCommand.replace(process.env.RAILWAY_TOKEN || '', '***TOKEN***'))
+    // Try automated approach if configured
+    const template = process.env.OPENCLAW_PAIRING_EXEC_COMMAND
+    if (template && template.includes('{command}')) {
+      try {
+        const execCommand = template
+          .replaceAll('{serviceId}', user.instance.containerId)
+          .replaceAll('{serviceName}', user.instance.containerName || '')
+          .replaceAll('{projectId}', process.env.RAILWAY_PROJECT_ID || '')
+          .replaceAll('{environmentId}', process.env.RAILWAY_ENVIRONMENT_ID || '')
+          .replaceAll('{token}', process.env.RAILWAY_TOKEN || '')
+          .replaceAll('{command}', listCommand)
 
-    const { stdout, stderr } = await exec(execCommand, {
-      timeout: 30_000,
-      windowsHide: true,
-      maxBuffer: 1024 * 1024,
-      env: {
-        ...process.env,
-        RAILWAY_TOKEN: process.env.RAILWAY_TOKEN
+        console.log('[Pairing List] Executing:', execCommand.replace(process.env.RAILWAY_TOKEN || '', '***TOKEN***'))
+
+        const { stdout, stderr } = await exec(execCommand, {
+          timeout: 30_000,
+          windowsHide: true,
+          maxBuffer: 1024 * 1024,
+          env: {
+            ...process.env,
+            RAILWAY_TOKEN: process.env.RAILWAY_TOKEN
+          }
+        })
+
+        if (stderr && stderr.trim().length > 0) {
+          console.warn('Pairing list stderr:', stderr)
+        }
+
+        // Parse the output
+        const lines = stdout.trim().split('\n').filter(line => line.trim())
+        const requests = lines.map(line => {
+          const match = line.match(/^(\S+)\s+-\s+user_id:(\d+)\s+-\s+expires:\s+(.+)$/)
+          if (match) {
+            return {
+              code: match[1],
+              userId: match[2],
+              expires: match[3]
+            }
+          }
+          return { raw: line }
+        })
+
+        return NextResponse.json({
+          success: true,
+          channel,
+          requests,
+          raw: stdout,
+          cliCommand
+        })
+      } catch (error: any) {
+        console.error('Automated list failed:', error)
+        return NextResponse.json(
+          {
+            error: error.message || 'Failed to list pairing requests',
+            output: error.stdout || error.stderr || '',
+            cliCommand,
+            fallbackMessage: 'Run this command in your Railway service terminal to list pending requests.'
+          },
+          { status: 500 }
+        )
       }
-    })
-
-    if (stderr && stderr.trim().length > 0) {
-      console.warn('Pairing list stderr:', stderr)
     }
 
-    // Parse the output to extract pairing requests
-    // Expected format from openclaw pairing list:
-    // CODE123 - user_id:123456789 - expires: 2024-01-01T12:00:00Z
-    const lines = stdout.trim().split('\n').filter(line => line.trim())
-    const requests = lines.map(line => {
-      // Try to parse the line
-      const match = line.match(/^(\S+)\s+-\s+user_id:(\d+)\s+-\s+expires:\s+(.+)$/)
-      if (match) {
-        return {
-          code: match[1],
-          userId: match[2],
-          expires: match[3]
-        }
-      }
-      // Fallback to returning the raw line
-      return { raw: line }
-    })
-
-    return NextResponse.json({
-      success: true,
-      channel,
-      requests,
-      raw: stdout
-    })
+    // No automation configured
+    return NextResponse.json(
+      {
+        error: 'Automated listing not configured',
+        cliCommand,
+        fallbackMessage: 'Run this command in your Railway service terminal to list pending requests.',
+        requests: []
+      },
+      { status: 501 }
+    )
 
   } catch (error: any) {
     console.error('Pairing list error:', error)
