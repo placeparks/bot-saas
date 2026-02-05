@@ -48,22 +48,48 @@ export async function GET(req: Request) {
       )
     }
 
-    const cliCommand = `openclaw pairing list ${channel}`
+    // Get the instance's pairing API URL
+    const pairingApiUrl = user.instance.serviceUrl
+      ? `${user.instance.serviceUrl.replace('18789', '18800')}/pairing/list/${channel}`
+      : null
 
-    // Just return the CLI command - user will run it manually
-    return NextResponse.json({
-      success: true,
-      cliCommand,
-      channel,
-      requests: [],
-      message: 'Run this command in your Railway service terminal to see pending requests',
-      instructions: [
-        '1. Go to Railway Dashboard',
-        '2. Open your OpenClaw service',
-        '3. Go to Deployments → Active deployment → Terminal',
-        '4. Run: openclaw pairing list telegram'
-      ]
-    })
+    if (!pairingApiUrl) {
+      return NextResponse.json(
+        { error: 'Instance URL not configured' },
+        { status: 400 }
+      )
+    }
+
+    try {
+      // Call the pairing API directly
+      const response = await fetch(pairingApiUrl, {
+        method: 'GET'
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to list pairing requests')
+      }
+
+      return NextResponse.json({
+        success: true,
+        channel,
+        requests: result.requests || [],
+        raw: result.raw
+      })
+    } catch (error: any) {
+      const cliCommand = `openclaw pairing list ${channel}`
+      return NextResponse.json(
+        {
+          error: error.message || 'Failed to connect to OpenClaw instance',
+          cliCommand,
+          channel,
+          requests: []
+        },
+        { status: 500 }
+      )
+    }
 
   } catch (error: any) {
     console.error('Pairing list error:', error)
