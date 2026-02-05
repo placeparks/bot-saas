@@ -12,6 +12,8 @@ const OPENCLAW_IMAGE = process.env.OPENCLAW_IMAGE || 'ghcr.io/openclaw/openclaw:
 
 const POLL_INTERVAL_MS = 3000
 const DEPLOY_TIMEOUT_MS = 120_000 // 2 minutes
+const RAILWAY_COOLDOWN_MAX_MS = 180_000 // 3 minutes
+const RAILWAY_COOLDOWN_BASE_DELAY_MS = 5000
 
 interface DeploymentResult {
   instanceId: string
@@ -107,8 +109,14 @@ export async function deployInstance(
       `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json && ` +
       `exec ${openclawCmd} --config ${configDir}/openclaw.json`
 
-    await railway.updateServiceInstance(serviceId, { startCommand: startCmd })
-    await railway.redeployService(serviceId)
+    await retryRailwayCooldown(
+      () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
+      'updateServiceInstance'
+    )
+    await retryRailwayCooldown(
+      () => railway.redeployService(serviceId),
+      'redeployService'
+    )
 
     // --- Poll until the deployment is live ---
     const accessUrl = await waitForDeployment(railway, serviceId)
@@ -136,6 +144,43 @@ export async function deployInstance(
 
     await logDeployment(instance.id, 'DEPLOY', 'FAILED', 'Deployment failed', error.message)
     throw new Error(`Deployment failed: ${error.message}`)
+  }
+}
+
+async function retryRailwayCooldown<T>(
+  fn: () => Promise<T>,
+  label: string
+): Promise<T> {
+  const startedAt = Date.now()
+  let attempt = 0
+
+  while (true) {
+    try {
+      return await fn()
+    } catch (error: any) {
+      const message = String(error?.message || '').toLowerCase()
+      const isCooldown =
+        message.includes('too recently updated') ||
+        message.includes('rate limit') ||
+        message.includes('rate limited')
+
+      if (!isCooldown) throw error
+
+      const elapsed = Date.now() - startedAt
+      if (elapsed >= RAILWAY_COOLDOWN_MAX_MS) {
+        throw new Error(`[Railway] ${label} blocked by cooldown for >3 minutes`)
+      }
+
+      attempt += 1
+      const delay = Math.min(
+        RAILWAY_COOLDOWN_BASE_DELAY_MS * attempt,
+        20_000
+      )
+      console.warn(
+        `[Railway] ${label} blocked by cooldown; retry ${attempt} in ${delay}ms`
+      )
+      await sleep(delay)
+    }
   }
 }
 
