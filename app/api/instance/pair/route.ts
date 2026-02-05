@@ -86,8 +86,9 @@ export async function POST(req: Request) {
       maxBuffer: 1024 * 1024,
       env: {
         ...process.env,
-        RAILWAY_TOKEN: process.env.RAILWAY_TOKEN,
-        RAILWAY_API_TOKEN: process.env.RAILWAY_API_TOKEN || process.env.RAILWAY_TOKEN
+        // Use project token for CLI/SSH operations (falls back to API token)
+        RAILWAY_TOKEN: process.env.RAILWAY_PROJECT_TOKEN || process.env.RAILWAY_TOKEN,
+        RAILWAY_API_TOKEN: process.env.RAILWAY_PROJECT_TOKEN || process.env.RAILWAY_API_TOKEN
       }
     })
 
