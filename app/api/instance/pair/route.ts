@@ -86,7 +86,8 @@ export async function POST(req: Request) {
       maxBuffer: 1024 * 1024,
       env: {
         ...process.env,
-        RAILWAY_TOKEN: process.env.RAILWAY_TOKEN
+        RAILWAY_TOKEN: process.env.RAILWAY_TOKEN,
+        RAILWAY_API_TOKEN: process.env.RAILWAY_API_TOKEN || process.env.RAILWAY_TOKEN
       }
     })
 
@@ -107,3 +108,4 @@ export async function POST(req: Request) {
     )
   }
 }
+
