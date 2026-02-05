@@ -121,9 +121,17 @@ export async function deployInstance(
     // --- Poll until the deployment is live ---
     const accessUrl = await waitForDeployment(railway, serviceId)
 
+    // Build internal serviceUrl for API calls (uses Railway's internal networking)
+    const serviceUrl = `https://${serviceName}.railway.internal:18789`
+
     await prisma.instance.update({
       where: { id: instance.id },
-      data: { status: InstanceStatus.RUNNING, accessUrl, containerId: serviceId },
+      data: {
+        status: InstanceStatus.RUNNING,
+        accessUrl,
+        serviceUrl,
+        containerId: serviceId
+      },
     })
 
     await logDeployment(instance.id, 'DEPLOY', 'SUCCESS', 'Deployment completed')
