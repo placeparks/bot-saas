@@ -21,6 +21,13 @@ interface ChannelAccessProps {
   channels: any[]
 }
 
+interface PairingRequest {
+  code?: string
+  userId?: string
+  expires?: string
+  raw?: string
+}
+
 export default function ChannelAccess({ channels }: ChannelAccessProps) {
   const [showingQR, setShowingQR] = useState<string | null>(null)
   const [pairingChannel, setPairingChannel] = useState<string | null>(null)
@@ -28,6 +35,9 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
   const [pairingError, setPairingError] = useState<string | null>(null)
   const [pairingSuccess, setPairingSuccess] = useState<string | null>(null)
   const [pairingLoading, setPairingLoading] = useState(false)
+  const [pendingRequests, setPendingRequests] = useState<PairingRequest[]>([])
+  const [showPendingRequests, setShowPendingRequests] = useState(false)
+  const [loadingRequests, setLoadingRequests] = useState(false)
   const telegramChannel = channels?.find((c) => c.type === 'TELEGRAM')
   const telegramUsername = telegramChannel?.botUsername?.replace('@', '')
   const telegramPairLink =
@@ -70,6 +80,27 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
     alert('Copied to clipboard!')
   }
 
+  const loadPendingRequests = async () => {
+    setLoadingRequests(true)
+    setPairingError(null)
+
+    try {
+      const response = await fetch('/api/instance/pair/list?channel=telegram')
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Failed to load pending requests')
+      }
+
+      setPendingRequests(result?.requests || [])
+      setShowPendingRequests(true)
+    } catch (error: any) {
+      setPairingError(error.message || 'Failed to load pending requests')
+    } finally {
+      setLoadingRequests(false)
+    }
+  }
+
   const approvePairing = async () => {
     if (!pairingCode) return
 
@@ -93,6 +124,10 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
       }
 
       setPairingSuccess(result?.message || 'Pairing approved successfully')
+      // Refresh pending requests after approval
+      if (showPendingRequests) {
+        await loadPendingRequests()
+      }
     } catch (error: any) {
       setPairingError(error.message || 'Pairing failed')
     } finally {
@@ -215,18 +250,28 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     </Button>
                   )}
                   {channel.type === 'TELEGRAM' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setPairingChannel(channel.type)
-                        setPairingCode('')
-                        setPairingError(null)
-                        setPairingSuccess(null)
-                      }}
-                    >
-                      Pair
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={loadPendingRequests}
+                        disabled={loadingRequests}
+                      >
+                        {loadingRequests ? 'Loading...' : 'Pending'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setPairingChannel(channel.type)
+                          setPairingCode('')
+                          setPairingError(null)
+                          setPairingSuccess(null)
+                        }}
+                      >
+                        Pair
+                      </Button>
+                    </>
                   )}
                   {accessInfo.value && accessInfo.value.startsWith('@') && (
                     <Button
@@ -266,6 +311,87 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                 >
                   Close
                 </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {showPendingRequests && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <Card className="max-w-2xl w-full mx-4">
+              <CardHeader>
+                <CardTitle>Pending Pairing Requests</CardTitle>
+                <CardDescription>
+                  Approve users who have messaged your bot
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {pendingRequests.length === 0 ? (
+                  <p className="text-sm text-gray-600 text-center py-4">
+                    No pending pairing requests
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {pendingRequests.map((req, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">
+                            Code: <span className="font-mono">{req.code}</span>
+                          </p>
+                          {req.userId && (
+                            <p className="text-xs text-gray-600">
+                              User ID: {req.userId}
+                            </p>
+                          )}
+                          {req.expires && (
+                            <p className="text-xs text-gray-600">
+                              Expires: {new Date(req.expires).toLocaleString()}
+                            </p>
+                          )}
+                          {req.raw && !req.code && (
+                            <p className="text-xs text-gray-600 font-mono">
+                              {req.raw}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setPairingCode(req.code || '')
+                            setPairingChannel('TELEGRAM')
+                            setShowPendingRequests(false)
+                          }}
+                          disabled={!req.code}
+                        >
+                          Approve
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {pairingError && (
+                  <p className="text-sm text-red-600">{pairingError}</p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={loadPendingRequests}
+                    disabled={loadingRequests}
+                  >
+                    {loadingRequests ? 'Refreshing...' : 'Refresh'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowPendingRequests(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
