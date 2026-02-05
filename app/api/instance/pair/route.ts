@@ -2,13 +2,9 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { exec as execCallback } from 'node:child_process'
-import { promisify } from 'node:util'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-
-const exec = promisify(execCallback)
 
 const CODE_PATTERN = /^[A-Za-z0-9_-]{2,32}$/
 const CHANNELS = new Set(['telegram'])
