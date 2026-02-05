@@ -23,6 +23,17 @@ interface ChannelAccessProps {
 
 export default function ChannelAccess({ channels }: ChannelAccessProps) {
   const [showingQR, setShowingQR] = useState<string | null>(null)
+  const [pairingChannel, setPairingChannel] = useState<string | null>(null)
+  const [pairingCode, setPairingCode] = useState('')
+  const [pairingError, setPairingError] = useState<string | null>(null)
+  const [pairingSuccess, setPairingSuccess] = useState<string | null>(null)
+  const [pairingLoading, setPairingLoading] = useState(false)
+  const telegramChannel = channels?.find((c) => c.type === 'TELEGRAM')
+  const telegramUsername = telegramChannel?.botUsername?.replace('@', '')
+  const telegramPairLink =
+    telegramUsername && pairingCode
+      ? `https://t.me/${telegramUsername}?start=${encodeURIComponent(pairingCode)}`
+      : '#'
 
   const getAccessInfo = (channel: any) => {
     switch (channel.type) {
@@ -36,7 +47,9 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
         return {
           label: 'Bot Username',
           value: channel.botUsername || '@yourbot',
-          link: `https://t.me/${channel.botUsername?.replace('@', '')}`
+          link: channel.botUsername
+            ? `https://t.me/${channel.botUsername.replace('@', '')}`
+            : undefined
         }
       case 'DISCORD':
         return {
@@ -55,6 +68,36 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
     alert('Copied to clipboard!')
+  }
+
+  const approvePairing = async () => {
+    if (!pairingCode) return
+
+    setPairingError(null)
+    setPairingSuccess(null)
+    setPairingLoading(true)
+
+    try {
+      const response = await fetch('/api/instance/pair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel: 'telegram',
+          code: pairingCode.trim()
+        })
+      })
+
+      const result = await response.json()
+      if (!response.ok) {
+        throw new Error(result?.error || 'Pairing failed')
+      }
+
+      setPairingSuccess(result?.message || 'Pairing approved successfully')
+    } catch (error: any) {
+      setPairingError(error.message || 'Pairing failed')
+    } finally {
+      setPairingLoading(false)
+    }
   }
 
   if (!channels || channels.length === 0) {
@@ -133,6 +176,20 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       </a>
                     </Button>
                   )}
+                  {channel.type === 'TELEGRAM' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setPairingChannel(channel.type)
+                        setPairingCode('')
+                        setPairingError(null)
+                        setPairingSuccess(null)
+                      }}
+                    >
+                      Pair
+                    </Button>
+                  )}
                   {accessInfo.value && accessInfo.value.startsWith('@') && (
                     <Button
                       variant="outline"
@@ -168,6 +225,77 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                 <Button
                   className="w-full mt-4"
                   onClick={() => setShowingQR(null)}
+                >
+                  Close
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {pairingChannel && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <Card className="max-w-md">
+              <CardHeader>
+                <CardTitle>Pair Telegram</CardTitle>
+                <CardDescription>
+                  Enter the pairing code you received, then open Telegram to connect.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">
+                    If you do not have access to the bot, share this code with the bot owner.
+                  </p>
+                  <input
+                    className="w-full border rounded-md px-3 py-2 text-sm"
+                    placeholder="Enter pairing code"
+                    value={pairingCode}
+                    onChange={(e) => setPairingCode(e.target.value)}
+                  />
+                </div>
+                {pairingError && (
+                  <p className="text-sm text-red-600">{pairingError}</p>
+                )}
+                {pairingSuccess && (
+                  <p className="text-sm text-green-600">{pairingSuccess}</p>
+                )}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => copyToClipboard(pairingCode ? `/pair ${pairingCode}` : '/pair')}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Command
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={approvePairing}
+                    disabled={!pairingCode || pairingLoading}
+                  >
+                    {pairingLoading ? 'Pairing...' : 'Pair Now'}
+                  </Button>
+                </div>
+                <Button
+                  className="w-full"
+                  asChild
+                  disabled={!pairingCode || !telegramUsername}
+                >
+                  <a
+                    href={telegramPairLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open Telegram
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setPairingChannel(null)}
                 >
                   Close
                 </Button>
