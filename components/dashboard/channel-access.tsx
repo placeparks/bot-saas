@@ -130,13 +130,21 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
         setShowCliCommand(true)
       }
 
-      if (!response.ok) {
-        setPairingError(result?.error || 'Ready to approve')
+      // Show output if available
+      if (result?.output) {
+        setApiOutput(result.output)
+      }
+
+      // Handle success or fallback
+      if (response.ok) {
+        setPairingSuccess(result?.message || 'Run the command below to approve')
       } else {
-        setPairingSuccess(result?.message || 'Ready to approve - run the command below')
+        setPairingError(result?.error || 'Use manual approval')
       }
     } catch (error: any) {
-      setPairingError(error.message || 'Failed to generate command')
+      setPairingError('Network error - showing manual approval method')
+      setCliCommand(`openclaw pairing approve telegram ${pairingCode.trim()}`)
+      setShowCliCommand(true)
     } finally {
       setPairingLoading(false)
     }
