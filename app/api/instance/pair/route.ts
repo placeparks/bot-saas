@@ -57,20 +57,49 @@ export async function POST(req: Request) {
       )
     }
 
-    const cliCommand = `openclaw pairing approve ${channel} ${code}`
+    // Get the instance's pairing API URL
+    // Assuming the service exposes port 18800 for our pairing API
+    const pairingApiUrl = user.instance.serviceUrl
+      ? `${user.instance.serviceUrl.replace('18789', '18800')}/pairing/approve`
+      : null
 
-    // Just return the CLI command - user will run it manually
-    return NextResponse.json({
-      success: true,
-      cliCommand,
-      message: 'Copy and run this command in your Railway service terminal',
-      instructions: [
-        '1. Go to Railway Dashboard',
-        '2. Open your OpenClaw service',
-        '3. Go to Deployments → Active deployment → Terminal',
-        '4. Paste and run the command'
-      ]
-    })
+    if (!pairingApiUrl) {
+      return NextResponse.json(
+        { error: 'Instance URL not configured' },
+        { status: 400 }
+      )
+    }
+
+    try {
+      // Call the pairing API directly
+      const response = await fetch(pairingApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel, code })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Pairing failed')
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: result.message || 'Pairing approved successfully',
+        output: result.output
+      })
+    } catch (error: any) {
+      const cliCommand = `openclaw pairing approve ${channel} ${code}`
+      return NextResponse.json(
+        {
+          error: error.message || 'Failed to connect to OpenClaw instance',
+          cliCommand,
+          fallbackMessage: 'Automated approval failed. Use the CLI command as fallback.'
+        },
+        { status: 500 }
+      )
+    }
 
   } catch (error: any) {
     console.error('Pairing approve error:', error)
