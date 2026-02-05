@@ -108,9 +108,25 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
           <CardDescription>No channels configured</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-600">
-            Configure channels in your instance settings to start chatting with your bot.
-          </p>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              Configure channels in your instance settings to start chatting with your bot.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPairingChannel('TELEGRAM')
+                setPairingCode('')
+                setPairingError(null)
+                setPairingSuccess(null)
+              }}
+            >
+              Pair Telegram
+            </Button>
+            <p className="text-xs text-gray-500">
+              Pairing works without channel config, but Telegram deep links need a bot username.
+            </p>
+          </div>
         </CardContent>
       </Card>
     )
