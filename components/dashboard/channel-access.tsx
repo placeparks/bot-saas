@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MessageSquare, Send, Hash, Zap, Phone, Mail, Grid, Users, Copy, ExternalLink, QrCode } from 'lucide-react'
+import { MessageSquare, Send, Hash, Zap, Phone, Mail, Grid, Users, Copy, ExternalLink, QrCode, Terminal } from 'lucide-react'
 import { useState } from 'react'
 
 const channelIcons: Record<string, any> = {
@@ -38,6 +38,9 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
   const [pendingRequests, setPendingRequests] = useState<PairingRequest[]>([])
   const [showPendingRequests, setShowPendingRequests] = useState(false)
   const [loadingRequests, setLoadingRequests] = useState(false)
+  const [showCliCommand, setShowCliCommand] = useState(false)
+  const [cliCommand, setCliCommand] = useState('')
+  const [apiOutput, setApiOutput] = useState('')
   const telegramChannel = channels?.find((c) => c.type === 'TELEGRAM')
   const telegramUsername = telegramChannel?.botUsername?.replace('@', '')
   const telegramPairLink =
@@ -107,6 +110,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
     setPairingError(null)
     setPairingSuccess(null)
     setPairingLoading(true)
+    setApiOutput('')
 
     try {
       const response = await fetch('/api/instance/pair', {
@@ -119,7 +123,23 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
       })
 
       const result = await response.json()
+
+      // Store CLI command for fallback
+      if (result?.cliCommand) {
+        setCliCommand(result.cliCommand)
+      }
+
+      // Store API output
+      if (result?.output) {
+        setApiOutput(result.output)
+      }
+
       if (!response.ok) {
+        setPairingError(result?.error || 'Pairing failed')
+        // Show CLI command if API fails
+        if (result?.cliCommand) {
+          setShowCliCommand(true)
+        }
         throw new Error(result?.error || 'Pairing failed')
       }
 
@@ -419,27 +439,84 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                   />
                 </div>
                 {pairingError && (
-                  <p className="text-sm text-red-600">{pairingError}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-red-600">{pairingError}</p>
+                    {showCliCommand && cliCommand && (
+                      <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Terminal className="h-4 w-4 text-orange-600" />
+                          <p className="text-sm font-medium text-orange-900">
+                            Run this command manually
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-xs bg-white px-2 py-1 rounded border font-mono">
+                            {cliCommand}
+                          </code>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              copyToClipboard(cliCommand)
+                              alert('Command copied! Run it in your OpenClaw container.')
+                            }}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-orange-700">
+                          Access your Railway service terminal and paste this command.
+                        </p>
+                      </div>
+                    )}
+                    {apiOutput && (
+                      <details className="text-xs">
+                        <summary className="cursor-pointer text-gray-600">
+                          View output
+                        </summary>
+                        <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                          {apiOutput}
+                        </pre>
+                      </details>
+                    )}
+                  </div>
                 )}
                 {pairingSuccess && (
-                  <p className="text-sm text-green-600">{pairingSuccess}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-green-600">{pairingSuccess}</p>
+                    {apiOutput && (
+                      <details className="text-xs">
+                        <summary className="cursor-pointer text-gray-600">
+                          View output
+                        </summary>
+                        <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                          {apiOutput}
+                        </pre>
+                      </details>
+                    )}
+                  </div>
                 )}
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => copyToClipboard(pairingCode ? `/pair ${pairingCode}` : '/pair')}
-                  >
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy Command
-                  </Button>
-                  <Button
-                    variant="outline"
+                    variant="default"
                     className="flex-1"
                     onClick={approvePairing}
                     disabled={!pairingCode || pairingLoading}
                   >
-                    {pairingLoading ? 'Pairing...' : 'Pair Now'}
+                    {pairingLoading ? 'Pairing...' : 'Approve Pairing'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      const cmd = `openclaw pairing approve telegram ${pairingCode.trim()}`
+                      setCliCommand(cmd)
+                      setShowCliCommand(true)
+                    }}
+                    disabled={!pairingCode}
+                  >
+                    <Terminal className="h-4 w-4 mr-2" />
+                    Show CLI
                   </Button>
                 </div>
                 <Button
@@ -459,7 +536,12 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => setPairingChannel(null)}
+                  onClick={() => {
+                    setPairingChannel(null)
+                    setShowCliCommand(false)
+                    setCliCommand('')
+                    setApiOutput('')
+                  }}
                 >
                   Close
                 </Button>
