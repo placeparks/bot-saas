@@ -112,17 +112,39 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
             <p className="text-sm text-gray-600">
               Configure channels in your instance settings to start chatting with your bot.
             </p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setPairingChannel('TELEGRAM')
-                setPairingCode('')
-                setPairingError(null)
-                setPairingSuccess(null)
-              }}
-            >
-              Pair Telegram
-            </Button>
+            <div className="rounded-lg border p-3 space-y-3">
+              <p className="text-sm font-medium">Pair Telegram</p>
+              <input
+                className="w-full border rounded-md px-3 py-2 text-sm"
+                placeholder="Enter pairing code"
+                value={pairingCode}
+                onChange={(e) => setPairingCode(e.target.value)}
+              />
+              {pairingError && (
+                <p className="text-sm text-red-600">{pairingError}</p>
+              )}
+              {pairingSuccess && (
+                <p className="text-sm text-green-600">{pairingSuccess}</p>
+              )}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => copyToClipboard(pairingCode ? `/pair ${pairingCode}` : '/pair')}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy Command
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={approvePairing}
+                  disabled={!pairingCode || pairingLoading}
+                >
+                  {pairingLoading ? 'Pairing...' : 'Pair Now'}
+                </Button>
+              </div>
+            </div>
             <p className="text-xs text-gray-500">
               Pairing works without channel config, but Telegram deep links need a bot username.
             </p>
