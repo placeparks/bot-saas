@@ -61,43 +61,67 @@ export async function POST(req: Request) {
       )
     }
 
-    const template = process.env.OPENCLAW_PAIRING_EXEC_COMMAND
-    if (!template || !template.includes('{command}')) {
-      return NextResponse.json(
-        { error: 'Pairing exec command not configured' },
-        { status: 501 }
-      )
-    }
-
     const pairingCommand = `openclaw pairing approve ${channel} ${code}`
-    const execCommand = template
-      .replaceAll('{serviceId}', user.instance.containerId)
-      .replaceAll('{serviceName}', user.instance.containerName || '')
-      .replaceAll('{projectId}', process.env.RAILWAY_PROJECT_ID || '')
-      .replaceAll('{environmentId}', process.env.RAILWAY_ENVIRONMENT_ID || '')
-      .replaceAll('{token}', process.env.RAILWAY_TOKEN || '')
-      .replaceAll('{command}', pairingCommand)
+    const cliCommand = pairingCommand
 
-    console.log('[Pairing] Executing command:', execCommand.replace(process.env.RAILWAY_TOKEN || '', '***TOKEN***'))
+    // Try automated approach if configured
+    const template = process.env.OPENCLAW_PAIRING_EXEC_COMMAND
+    if (template && template.includes('{command}')) {
+      try {
+        const execCommand = template
+          .replaceAll('{serviceId}', user.instance.containerId)
+          .replaceAll('{serviceName}', user.instance.containerName || '')
+          .replaceAll('{projectId}', process.env.RAILWAY_PROJECT_ID || '')
+          .replaceAll('{environmentId}', process.env.RAILWAY_ENVIRONMENT_ID || '')
+          .replaceAll('{token}', process.env.RAILWAY_TOKEN || '')
+          .replaceAll('{command}', pairingCommand)
 
-    const { stdout, stderr } = await exec(execCommand, {
-      timeout: 30_000,
-      windowsHide: true,
-      maxBuffer: 1024 * 1024,
-      env: {
-        ...process.env,
-        RAILWAY_TOKEN: process.env.RAILWAY_TOKEN
+        console.log('[Pairing] Executing:', execCommand.replace(process.env.RAILWAY_TOKEN || '', '***TOKEN***'))
+
+        const { stdout, stderr } = await exec(execCommand, {
+          timeout: 30_000,
+          windowsHide: true,
+          maxBuffer: 1024 * 1024,
+          env: {
+            ...process.env,
+            RAILWAY_TOKEN: process.env.RAILWAY_TOKEN
+          }
+        })
+
+        if (stderr && stderr.trim().length > 0) {
+          console.warn('Pairing stderr:', stderr)
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: 'Pairing approved successfully',
+          output: stdout,
+          cliCommand
+        })
+      } catch (error: any) {
+        console.error('Automated pairing failed:', error)
+        // Fall through to return CLI command
+        return NextResponse.json(
+          {
+            error: error.message || 'Automated approval failed',
+            output: error.stdout || error.stderr || '',
+            cliCommand,
+            fallbackMessage: 'Automated approval failed. Please run the command manually in your Railway service terminal.'
+          },
+          { status: 500 }
+        )
       }
-    })
-
-    if (stderr && stderr.trim().length > 0) {
-      console.warn('Pairing stderr:', stderr)
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Pairing approved'
-    })
+    // No automation configured - return CLI command
+    return NextResponse.json(
+      {
+        error: 'Automated approval not configured',
+        cliCommand,
+        fallbackMessage: 'Run this command in your Railway service terminal to approve the pairing.'
+      },
+      { status: 501 }
+    )
 
   } catch (error: any) {
     console.error('Pairing approve error:', error)
