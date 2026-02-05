@@ -87,10 +87,14 @@ export async function deployInstance(
     )
 
     // Persist the Railway service ID immediately
-    await prisma.instance.update({
-      where: { id: instance.id },
-      data: { containerId: serviceId },
-    })
+    try {
+      await prisma.instance.update({
+        where: { id: instance.id },
+        data: { containerId: serviceId },
+      })
+    } catch (err) {
+      console.warn('⚠️  Failed to persist containerId (will retry later):', err)
+    }
 
     // --- Override start command so the config JSON is written before OpenClaw starts ---
     // The auto-deploy triggered by createService may finish before this update lands;
@@ -111,7 +115,7 @@ export async function deployInstance(
 
     await prisma.instance.update({
       where: { id: instance.id },
-      data: { status: InstanceStatus.RUNNING, accessUrl },
+      data: { status: InstanceStatus.RUNNING, accessUrl, containerId: serviceId },
     })
 
     await logDeployment(instance.id, 'DEPLOY', 'SUCCESS', 'Deployment completed')
@@ -177,13 +181,31 @@ async function waitForDeployment(
   throw new Error('Deployment timed out (2 min)')
 }
 
+async function ensureContainerId(
+  railway: RailwayClient,
+  instance: { id: string; containerId: string | null; containerName: string | null }
+): Promise<string> {
+  if (instance.containerId) return instance.containerId
+  if (!instance.containerName) throw new Error('Instance has no container name')
+
+  const found = await railway.findServiceByName(instance.containerName)
+  if (!found) throw new Error('Railway service not found for instance')
+
+  await prisma.instance.update({
+    where: { id: instance.id },
+    data: { containerId: found },
+  })
+
+  return found
+}
+
 export async function stopInstance(instanceId: string): Promise<void> {
   const instance = await prisma.instance.findUnique({ where: { id: instanceId } })
   if (!instance) throw new Error('Instance not found')
-  if (!instance.containerId) throw new Error('Instance has no Railway service ID')
 
   const railway = new RailwayClient()
-  const deployment = await railway.getLatestDeployment(instance.containerId)
+  const containerId = await ensureContainerId(railway, instance)
+  const deployment = await railway.getLatestDeployment(containerId)
   if (!deployment) throw new Error('No active deployment found')
 
   await railway.removeDeployment(deployment.id)
@@ -199,10 +221,10 @@ export async function stopInstance(instanceId: string): Promise<void> {
 export async function startInstance(instanceId: string): Promise<void> {
   const instance = await prisma.instance.findUnique({ where: { id: instanceId } })
   if (!instance) throw new Error('Instance not found')
-  if (!instance.containerId) throw new Error('Instance has no Railway service ID')
 
   const railway = new RailwayClient()
-  await railway.redeployService(instance.containerId)
+  const containerId = await ensureContainerId(railway, instance)
+  await railway.redeployService(containerId)
 
   await prisma.instance.update({
     where: { id: instanceId },
@@ -215,7 +237,6 @@ export async function startInstance(instanceId: string): Promise<void> {
 export async function restartInstance(instanceId: string): Promise<void> {
   const instance = await prisma.instance.findUnique({ where: { id: instanceId } })
   if (!instance) throw new Error('Instance not found')
-  if (!instance.containerId) throw new Error('Instance has no Railway service ID')
 
   await prisma.instance.update({
     where: { id: instanceId },
@@ -223,12 +244,13 @@ export async function restartInstance(instanceId: string): Promise<void> {
   })
 
   const railway = new RailwayClient()
-  const deployment = await railway.getLatestDeployment(instance.containerId)
+  const containerId = await ensureContainerId(railway, instance)
+  const deployment = await railway.getLatestDeployment(containerId)
 
   if (deployment && deployment.status === 'SUCCESS') {
     await railway.restartDeployment(deployment.id)
   } else {
-    await railway.redeployService(instance.containerId)
+    await railway.redeployService(containerId)
   }
 
   await prisma.instance.update({
@@ -242,10 +264,10 @@ export async function restartInstance(instanceId: string): Promise<void> {
 export async function getInstanceLogs(instanceId: string, tail = 100): Promise<string> {
   const instance = await prisma.instance.findUnique({ where: { id: instanceId } })
   if (!instance) throw new Error('Instance not found')
-  if (!instance.containerId) throw new Error('Instance has no Railway service ID')
 
   const railway = new RailwayClient()
-  const deployment = await railway.getLatestDeployment(instance.containerId)
+  const containerId = await ensureContainerId(railway, instance)
+  const deployment = await railway.getLatestDeployment(containerId)
   if (!deployment) return 'No deployments found.'
 
   const logs = await railway.getLogs(deployment.id, tail)
@@ -255,10 +277,11 @@ export async function getInstanceLogs(instanceId: string, tail = 100): Promise<s
 export async function checkInstanceHealth(instanceId: string): Promise<boolean> {
   try {
     const instance = await prisma.instance.findUnique({ where: { id: instanceId } })
-    if (!instance || !instance.containerId) return false
+    if (!instance) return false
 
     const railway = new RailwayClient()
-    const deployment = await railway.getLatestDeployment(instance.containerId)
+    const containerId = await ensureContainerId(railway, instance)
+    const deployment = await railway.getLatestDeployment(containerId)
     const isHealthy = deployment?.status === 'SUCCESS'
 
     await prisma.instance.update({
