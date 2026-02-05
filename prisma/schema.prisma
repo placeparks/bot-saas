@@ -67,6 +67,7 @@ model Instance {
   status        InstanceStatus
 
   accessUrl     String?
+  serviceUrl    String?         // Internal Railway service URL for API calls
   qrCode        String?
 
   config        Configuration?
