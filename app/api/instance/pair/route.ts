@@ -57,49 +57,52 @@ export async function POST(req: Request) {
       )
     }
 
-    // Get the instance's pairing API URL
-    // Assuming the service exposes port 18800 for our pairing API
+    const cliCommand = `openclaw pairing approve ${channel} ${code}`
+
+    // Check if custom image with pairing API is deployed
     const pairingApiUrl = user.instance.serviceUrl
       ? `${user.instance.serviceUrl.replace('18789', '18800')}/pairing/approve`
       : null
 
-    if (!pairingApiUrl) {
-      return NextResponse.json(
-        { error: 'Instance URL not configured' },
-        { status: 400 }
-      )
-    }
+    // Try automated approval if pairing API is available
+    if (pairingApiUrl) {
+      try {
+        const response = await fetch(pairingApiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel, code }),
+          signal: AbortSignal.timeout(5000) // 5 second timeout
+        })
 
-    try {
-      // Call the pairing API directly
-      const response = await fetch(pairingApiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channel, code })
-      })
+        const result = await response.json()
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Pairing failed')
+        if (response.ok) {
+          return NextResponse.json({
+            success: true,
+            message: result.message || 'Pairing approved successfully',
+            output: result.output,
+            cliCommand
+          })
+        }
+      } catch (error: any) {
+        console.log('[Pairing] Automated approval failed, showing CLI fallback:', error.message)
+        // Fall through to CLI fallback
       }
-
-      return NextResponse.json({
-        success: true,
-        message: result.message || 'Pairing approved successfully',
-        output: result.output
-      })
-    } catch (error: any) {
-      const cliCommand = `openclaw pairing approve ${channel} ${code}`
-      return NextResponse.json(
-        {
-          error: error.message || 'Failed to connect to OpenClaw instance',
-          cliCommand,
-          fallbackMessage: 'Automated approval failed. Use the CLI command as fallback.'
-        },
-        { status: 500 }
-      )
     }
+
+    // Return CLI command for manual approval
+    return NextResponse.json({
+      success: true,
+      cliCommand,
+      message: 'Pairing API not available - use manual approval',
+      instructions: [
+        '1. Go to Railway Dashboard',
+        '2. Open your OpenClaw service → Deployments',
+        '3. Click active deployment → Terminal',
+        '4. Run the command shown above'
+      ],
+      note: 'To enable one-click approval, deploy the custom OpenClaw image with pairing API'
+    })
 
   } catch (error: any) {
     console.error('Pairing approve error:', error)
