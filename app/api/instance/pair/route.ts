@@ -73,6 +73,8 @@ export async function POST(req: Request) {
     const execCommand = template
       .replaceAll('{serviceId}', user.instance.containerId)
       .replaceAll('{serviceName}', user.instance.containerName || '')
+      .replaceAll('{projectId}', process.env.RAILWAY_PROJECT_ID || '')
+      .replaceAll('{environmentId}', process.env.RAILWAY_ENVIRONMENT_ID || '')
       .replaceAll('{command}', pairingCommand)
 
     const { stdout, stderr } = await exec(execCommand, {
