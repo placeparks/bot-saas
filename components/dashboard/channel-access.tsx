@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MessageSquare, Send, Hash, Zap, Phone, Mail, Grid, Users, Copy, ExternalLink, QrCode, Terminal } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 const channelIcons: Record<string, any> = {
   WHATSAPP: MessageSquare,
@@ -104,13 +104,42 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
     }
   }
 
-  const approvePairing = async () => {
-    if (!pairingCode) return
+  const [upgrading, setUpgrading] = useState(false)
+  const [countdown, setCountdown] = useState(0)
+  const retryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  // Countdown timer for auto-retry after upgrade
+  useEffect(() => {
+    if (countdown <= 0) {
+      if (retryTimerRef.current) {
+        clearInterval(retryTimerRef.current)
+        retryTimerRef.current = null
+      }
+      return
+    }
+    retryTimerRef.current = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          // Auto-retry when countdown reaches 0
+          doApprovePairing(true)
+          return 0
+        }
+        return c - 1
+      })
+    }, 1000)
+    return () => {
+      if (retryTimerRef.current) clearInterval(retryTimerRef.current)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countdown > 0])
+
+  const doApprovePairing = async (isRetry = false) => {
     setPairingError(null)
     setPairingSuccess(null)
     setPairingLoading(true)
     setApiOutput('')
+    setShowCliCommand(false)
+    if (!isRetry) setUpgrading(false)
 
     try {
       const response = await fetch('/api/instance/pair', {
@@ -118,38 +147,52 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           channel: 'telegram',
-          code: pairingCode.trim()
+          code: pairingCode.trim(),
+          retry: isRetry
         })
       })
 
       const result = await response.json()
 
       if (response.ok) {
-        // Show output if available
         if (result?.output) {
           setApiOutput(result.output)
         }
 
-        // Only show CLI fallback if automatic methods failed
-        if (result?.instructions) {
+        if (result?.upgrading) {
+          // Instance is being redeployed with pairing server
+          setUpgrading(true)
+          setCountdown(45)
+          setPairingSuccess(result.message)
+        } else if (result?.instructions) {
+          // All methods failed - show CLI fallback
+          setUpgrading(false)
           setCliCommand(result.cliCommand)
           setShowCliCommand(true)
           setPairingSuccess(result?.message || 'Use the command below to approve')
         } else {
-          // Automatic pairing succeeded
+          // Pairing succeeded!
+          setUpgrading(false)
           setShowCliCommand(false)
           setPairingSuccess(result?.message || 'Pairing approved successfully!')
         }
       } else {
+        setUpgrading(false)
         setPairingError(result?.error || 'Pairing failed')
       }
     } catch (error: any) {
+      setUpgrading(false)
       setPairingError('Network error - showing manual approval method')
       setCliCommand(`openclaw pairing approve telegram ${pairingCode.trim()}`)
       setShowCliCommand(true)
     } finally {
       setPairingLoading(false)
     }
+  }
+
+  const approvePairing = () => {
+    if (!pairingCode) return
+    doApprovePairing(false)
   }
 
   if (!channels || channels.length === 0) {
@@ -435,7 +478,23 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     onChange={(e) => setPairingCode(e.target.value)}
                   />
                 </div>
-                {showCliCommand && cliCommand && (
+                {upgrading && countdown > 0 && (
+                  <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 space-y-2">
+                    <p className="text-sm font-medium text-yellow-900">
+                      Upgrading your instance for one-click pairing...
+                    </p>
+                    <p className="text-sm text-yellow-700">
+                      Your bot is restarting. Auto-retrying in <span className="font-mono font-bold">{countdown}s</span>
+                    </p>
+                    <div className="w-full bg-yellow-200 rounded-full h-2">
+                      <div
+                        className="bg-yellow-500 h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${((45 - countdown) / 45) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {showCliCommand && cliCommand && !upgrading && (
                   <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-3">
                     <div className="flex items-center gap-2">
                       <Terminal className="h-5 w-5 text-blue-600" />
@@ -471,16 +530,16 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                 {pairingError && (
                   <p className="text-sm text-red-600">{pairingError}</p>
                 )}
-                {pairingSuccess && (
+                {pairingSuccess && !upgrading && (
                   <p className="text-sm text-green-600">{pairingSuccess}</p>
                 )}
                 <Button
                   className="w-full"
                   onClick={approvePairing}
-                  disabled={!pairingCode || pairingLoading}
+                  disabled={!pairingCode || pairingLoading || (upgrading && countdown > 0)}
                 >
                   <Terminal className="h-4 w-4 mr-2" />
-                  {pairingLoading ? 'Pairing...' : showCliCommand ? 'Retry Pairing' : 'Pair Now'}
+                  {pairingLoading ? 'Pairing...' : upgrading ? `Waiting for restart (${countdown}s)` : showCliCommand ? 'Retry Pairing' : 'Pair Now'}
                 </Button>
                 <Button
                   className="w-full"
@@ -504,6 +563,8 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     setShowCliCommand(false)
                     setCliCommand('')
                     setApiOutput('')
+                    setUpgrading(false)
+                    setCountdown(0)
                   }}
                 >
                   Close
