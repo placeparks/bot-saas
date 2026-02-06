@@ -110,10 +110,6 @@ export async function deployInstance(
       `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json && ` +
       `exec ${openclawCmd} --config ${configDir}/openclaw.json`
 
-    // Wait a bit for service to be fully created before updating
-    console.log('[Railway] Waiting 3s for service to be ready...')
-    await sleep(3000)
-
     try {
       await retryRailwayCooldown(
         () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
@@ -124,39 +120,28 @@ export async function deployInstance(
       console.warn('[Railway] Continuing with default command (may cause issues)')
     }
 
-    // Wait before redeploying
-    await sleep(2000)
-
-    await retryRailwayCooldown(
-      () => railway.redeployService(serviceId),
-      'redeployService'
-    )
-
-    // --- Poll until the deployment is live ---
-    const accessUrl = await waitForDeployment(railway, serviceId)
-
-    // Build internal serviceUrl for API calls (uses Railway's internal networking)
+    // Do not force a redeploy or wait for it here; Railway will deploy in its own time.
     const serviceUrl = `https://${serviceName}.railway.internal:18789`
 
     await prisma.instance.update({
       where: { id: instance.id },
       data: {
-        status: InstanceStatus.RUNNING,
-        accessUrl,
+        status: InstanceStatus.DEPLOYING,
+        accessUrl: null,
         serviceUrl,
         containerId: serviceId
       },
     })
 
-    await logDeployment(instance.id, 'DEPLOY', 'SUCCESS', 'Deployment completed')
+    await logDeployment(instance.id, 'DEPLOY', 'QUEUED', 'Deployment queued (Railway-managed)')
 
     return {
       instanceId: instance.id,
       containerId: serviceId,
       containerName: serviceName,
       port,
-      accessUrl,
-      status: 'RUNNING',
+      accessUrl: '',
+      status: 'DEPLOYING',
     }
   } catch (error: any) {
     await prisma.instance.update({
