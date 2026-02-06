@@ -40,12 +40,34 @@ export async function POST(req: Request) {
         await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
         break
 
+      case 'customer.subscription.created':
+        // Subscription created - usually handled by checkout.session.completed
+        console.log('✅ Subscription created (handled by checkout.session.completed)')
+        break
+
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(event.data.object as Stripe.Subscription)
         break
 
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription)
+        break
+
+      case 'invoice.payment_succeeded':
+      case 'invoice.paid':
+        // Invoice paid successfully - subscription renewal
+        console.log('✅ Invoice paid successfully')
+        await handleInvoicePaid(event.data.object as Stripe.Invoice)
+        break
+
+      case 'invoice.updated':
+        // Invoice updated - log for monitoring
+        console.log('📝 Invoice updated')
+        break
+
+      case 'customer.created':
+        // Customer created - happens before subscription
+        console.log('✅ Customer created')
         break
 
       default:
@@ -254,5 +276,30 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     // - Remove container
     // - Remove volumes
     console.log(`TODO: Clean up instance for user ${dbSubscription.userId}`)
+  }
+}
+
+async function handleInvoicePaid(invoice: Stripe.Invoice) {
+  const customerId = invoice.customer as string
+
+  const dbSubscription = await prisma.subscription.findUnique({
+    where: { stripeCustomerId: customerId }
+  })
+
+  if (!dbSubscription) {
+    console.log('Invoice paid for unknown customer (possibly first payment):', customerId)
+    return
+  }
+
+  // Update subscription period end if available
+  if (invoice.lines.data[0]?.period?.end) {
+    await prisma.subscription.update({
+      where: { id: dbSubscription.id },
+      data: {
+        stripeCurrentPeriodEnd: new Date(invoice.lines.data[0].period.end * 1000),
+        status: SubscriptionStatus.ACTIVE
+      }
+    })
+    console.log(`✅ Updated subscription period for user ${dbSubscription.userId}`)
   }
 }
