@@ -124,22 +124,24 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
 
       const result = await response.json()
 
-      // Always show CLI command
-      if (result?.cliCommand) {
-        setCliCommand(result.cliCommand)
-        setShowCliCommand(true)
-      }
-
-      // Show output if available
-      if (result?.output) {
-        setApiOutput(result.output)
-      }
-
-      // Handle success or fallback
       if (response.ok) {
-        setPairingSuccess(result?.message || 'Run the command below to approve')
+        // Show output if available
+        if (result?.output) {
+          setApiOutput(result.output)
+        }
+
+        // Only show CLI fallback if automatic methods failed
+        if (result?.instructions) {
+          setCliCommand(result.cliCommand)
+          setShowCliCommand(true)
+          setPairingSuccess(result?.message || 'Use the command below to approve')
+        } else {
+          // Automatic pairing succeeded
+          setShowCliCommand(false)
+          setPairingSuccess(result?.message || 'Pairing approved successfully!')
+        }
       } else {
-        setPairingError(result?.error || 'Use manual approval')
+        setPairingError(result?.error || 'Pairing failed')
       }
     } catch (error: any) {
       setPairingError('Network error - showing manual approval method')
@@ -469,7 +471,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                 {pairingError && (
                   <p className="text-sm text-red-600">{pairingError}</p>
                 )}
-                {pairingSuccess && !showCliCommand && (
+                {pairingSuccess && (
                   <p className="text-sm text-green-600">{pairingSuccess}</p>
                 )}
                 <Button
@@ -478,7 +480,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                   disabled={!pairingCode || pairingLoading}
                 >
                   <Terminal className="h-4 w-4 mr-2" />
-                  {pairingLoading ? 'Generating...' : showCliCommand ? 'Regenerate Command' : 'Generate Approval Command'}
+                  {pairingLoading ? 'Pairing...' : showCliCommand ? 'Retry Pairing' : 'Pair Now'}
                 </Button>
                 <Button
                   className="w-full"
