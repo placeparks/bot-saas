@@ -1,4 +1,4 @@
-const RAILWAY_API_URL = 'https://backboard.railway.com/graphql/v2'
+const RAILWAY_API_URL = 'https://backboard.railway.app/graphql/v2'
 
 interface GraphQLResponse<T = any> {
   data?: T
@@ -9,6 +9,7 @@ export interface Deployment {
   id: string
   status: string
   url?: string
+  staticUrl?: string
   createdAt?: string
 }
 
@@ -202,29 +203,32 @@ export class RailwayClient {
 
   /** Return the most recent deployment for a service. */
   async getLatestDeployment(serviceId: string): Promise<Deployment | null> {
-    const { deployments } = await this.graphql<{
-      deployments: { edges: { node: Deployment }[] }
+    const { service } = await this.graphql<{
+      service: { deployments: { edges: { node: Deployment }[] } }
     }>(`
-      query deployments($input: DeploymentListInput!) {
-        deployments(input: $input) {
-          edges {
-            node {
-              id
-              status
-              url
-              createdAt
+      query service($id: String!) {
+        service(id: $id) {
+          deployments(first: 1) {
+            edges {
+              node {
+                id
+                status
+                url
+                staticUrl
+                createdAt
+              }
             }
           }
         }
       }
-    `, {
-      input: {
-        serviceId,
-        first: 1,
-      },
-    })
+    `, { id: serviceId })
 
-    return deployments.edges[0]?.node ?? null
+    const node = service?.deployments?.edges[0]?.node
+    if (!node) return null
+    if (!node.url && node.staticUrl) {
+      return { ...node, url: node.staticUrl }
+    }
+    return node
   }
 
   /** Fetch log entries for a deployment. */
