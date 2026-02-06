@@ -10,6 +10,63 @@ import { InstanceStatus } from '@prisma/client'
 
 const OPENCLAW_IMAGE = process.env.OPENCLAW_IMAGE || 'ghcr.io/openclaw/openclaw:latest'
 
+// Minimal Python HTTP server that wraps `openclaw pairing` CLI commands.
+// Runs on port 18800 inside the container alongside OpenClaw (port 18789).
+const PAIRING_SERVER_PY = `
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import subprocess, json
+
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/health':
+            self._ok({'status': 'ok'})
+        elif self.path.startswith('/pairing/list/'):
+            ch = self.path.rsplit('/', 1)[-1]
+            r = subprocess.run(['openclaw', 'pairing', 'list', ch], capture_output=True, text=True, timeout=10)
+            self._ok({'success': r.returncode == 0, 'raw': r.stdout, 'requests': []})
+        else:
+            self.send_response(404); self.end_headers()
+
+    def do_POST(self):
+        if self.path == '/pairing/approve':
+            n = int(self.headers.get('Content-Length', 0))
+            b = json.loads(self.rfile.read(n)) if n else {}
+            ch, code = b.get('channel', ''), b.get('code', '')
+            if not ch or not code:
+                self._ok({'success': False, 'message': 'Missing channel or code'}, 400)
+                return
+            r = subprocess.run(['openclaw', 'pairing', 'approve', ch, code], capture_output=True, text=True, timeout=15)
+            ok = r.returncode == 0
+            self._ok({'success': ok, 'output': r.stdout, 'message': 'Pairing approved successfully' if ok else r.stderr}, 200 if ok else 500)
+        else:
+            self.send_response(404); self.end_headers()
+
+    def _ok(self, data, code=200):
+        self.send_response(code)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode())
+
+    def log_message(self, *a): pass
+
+HTTPServer(('0.0.0.0', 18800), H).serve_forever()
+`.trim()
+
+/** Base64-encoded pairing server script for embedding in container env vars. */
+export const PAIRING_SCRIPT_B64 = Buffer.from(PAIRING_SERVER_PY).toString('base64')
+
+/** Build the start command that runs both the pairing server and OpenClaw. */
+export function buildStartCommand(): string {
+  const openclawCmd = process.env.OPENCLAW_CMD || 'openclaw'
+  const configDir = '/tmp/.openclaw'
+  return [
+    `mkdir -p ${configDir}`,
+    `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
+    `(echo "$_PAIRING_SCRIPT_B64" | base64 -d | python3 - &) 2>/dev/null || true`,
+    `exec ${openclawCmd} --config ${configDir}/openclaw.json`,
+  ].join(' && ')
+}
+
 const POLL_INTERVAL_MS = 3000
 const DEPLOY_TIMEOUT_MS = 120_000 // 2 minutes
 const RAILWAY_COOLDOWN_MAX_MS = 180_000 // 3 minutes
@@ -80,6 +137,8 @@ export async function deployInstance(
   envVars.OPENCLAW_CONFIG = JSON.stringify(openclawConfig)
   // Gateway token required by OpenClaw (generate a random one per instance)
   envVars.OPENCLAW_GATEWAY_TOKEN = crypto.randomUUID()
+  // Pairing server script — decoded + launched by the start command
+  envVars._PAIRING_SCRIPT_B64 = PAIRING_SCRIPT_B64
   validateOpenClawEnv(config, envVars)
 
     // --- Create Railway service (image + env vars, auto-deploys) ---
@@ -100,15 +159,9 @@ export async function deployInstance(
     }
 
     // --- Override start command so the config JSON is written before OpenClaw starts ---
-    // The auto-deploy triggered by createService may finish before this update lands;
-    // redeployService below ensures the corrected command is actually used.
+    // Also starts a lightweight pairing HTTP server on port 18800 (Python3).
     // NOTE: Railway runs containers as non-root, so we use /tmp instead of /root
-    const openclawCmd = process.env.OPENCLAW_CMD || 'openclaw'
-    const configDir = '/tmp/.openclaw'
-    const startCmd =
-      `mkdir -p ${configDir} && ` +
-      `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json && ` +
-      `exec ${openclawCmd} --config ${configDir}/openclaw.json`
+    const startCmd = buildStartCommand()
 
     try {
       await retryRailwayCooldown(
