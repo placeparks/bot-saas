@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { approvePairing } from '@/lib/railway/graphql'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -90,18 +91,43 @@ export async function POST(req: Request) {
       }
     }
 
-    // Return CLI command for manual approval
+    // Try Railway GraphQL exec as second method
+    const railwayToken = process.env.RAILWAY_TOKEN
+    if (railwayToken && user.instance.containerId) {
+      try {
+        const execResult = await approvePairing({
+          serviceId: user.instance.containerId,
+          channel,
+          code,
+          railwayToken
+        })
+
+        if (execResult.success) {
+          return NextResponse.json({
+            success: true,
+            message: 'Pairing approved successfully',
+            output: execResult.output,
+            cliCommand
+          })
+        }
+
+        console.log('[Pairing] Railway GraphQL exec failed:', execResult.error)
+      } catch (error: any) {
+        console.log('[Pairing] Railway GraphQL exec error:', error.message)
+      }
+    }
+
+    // Return CLI command for manual approval (last resort)
     return NextResponse.json({
       success: true,
       cliCommand,
-      message: 'Pairing API not available - use manual approval',
+      message: 'Automatic pairing failed - use manual approval',
       instructions: [
         '1. Go to Railway Dashboard',
         '2. Open your OpenClaw service → Deployments',
         '3. Click active deployment → Terminal',
         '4. Run the command shown above'
-      ],
-      note: 'To enable one-click approval, deploy the custom OpenClaw image with pairing API'
+      ]
     })
 
   } catch (error: any) {
