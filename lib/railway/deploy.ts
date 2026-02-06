@@ -109,10 +109,23 @@ export async function deployInstance(
       `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json && ` +
       `exec ${openclawCmd} --config ${configDir}/openclaw.json`
 
-    await retryRailwayCooldown(
-      () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
-      'updateServiceInstance'
-    )
+    // Wait a bit for service to be fully created before updating
+    console.log('[Railway] Waiting 3s for service to be ready...')
+    await sleep(3000)
+
+    try {
+      await retryRailwayCooldown(
+        () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
+        'updateServiceInstance'
+      )
+    } catch (error: any) {
+      console.warn('[Railway] Failed to update start command:', error.message)
+      console.warn('[Railway] Continuing with default command (may cause issues)')
+    }
+
+    // Wait before redeploying
+    await sleep(2000)
+
     await retryRailwayCooldown(
       () => railway.redeployService(serviceId),
       'redeployService'
@@ -172,11 +185,26 @@ async function retryRailwayCooldown<T>(
         message.includes('rate limit') ||
         message.includes('rate limited')
 
-      if (!isCooldown) throw error
+      const is400Error =
+        message.includes('http 400') ||
+        message.includes('problem processing request')
+
+      // If it's a 400 error, retry a few times with delays
+      if (is400Error && attempt < 3) {
+        attempt += 1
+        const delay = 2000 * attempt
+        console.warn(
+          `[Railway] ${label} got 400 error; retry ${attempt}/3 in ${delay}ms`
+        )
+        await sleep(delay)
+        continue
+      }
+
+      if (!isCooldown && !is400Error) throw error
 
       const elapsed = Date.now() - startedAt
       if (elapsed >= RAILWAY_COOLDOWN_MAX_MS) {
-        throw new Error(`[Railway] ${label} blocked by cooldown for >3 minutes`)
+        throw new Error(`[Railway] ${label} blocked by cooldown/errors for >3 minutes`)
       }
 
       attempt += 1
