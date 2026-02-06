@@ -73,13 +73,14 @@ export async function deployInstance(
   await logDeployment(instance.id, 'DEPLOY', 'IN_PROGRESS', 'Creating Railway service...')
 
   try {
-    // --- Build env vars for the OpenClaw container ---
-    const envVars = buildEnvironmentVariables(config)
-    const openclawConfig = generateOpenClawConfig(config)
-    // Serialized config; the start command writes it to the expected file path
-    envVars.OPENCLAW_CONFIG = JSON.stringify(openclawConfig)
-    // Gateway token required by OpenClaw (generate a random one per instance)
-    envVars.OPENCLAW_GATEWAY_TOKEN = crypto.randomUUID()
+  // --- Build env vars for the OpenClaw container ---
+  const envVars = buildEnvironmentVariables(config)
+  const openclawConfig = generateOpenClawConfig(config)
+  // Serialized config; the start command writes it to the expected file path
+  envVars.OPENCLAW_CONFIG = JSON.stringify(openclawConfig)
+  // Gateway token required by OpenClaw (generate a random one per instance)
+  envVars.OPENCLAW_GATEWAY_TOKEN = crypto.randomUUID()
+  validateOpenClawEnv(config, envVars)
 
     // --- Create Railway service (image + env vars, auto-deploys) ---
     const { id: serviceId } = await railway.createService(
@@ -165,6 +166,34 @@ export async function deployInstance(
 
     await logDeployment(instance.id, 'DEPLOY', 'FAILED', 'Deployment failed', error.message)
     throw new Error(`Deployment failed: ${error.message}`)
+  }
+}
+
+function validateOpenClawEnv(
+  config: UserConfiguration,
+  envVars: Record<string, string>
+) {
+  const errors: string[] = []
+
+  if (!envVars.OPENCLAW_CONFIG || envVars.OPENCLAW_CONFIG.length < 10) {
+    errors.push('OPENCLAW_CONFIG is missing or too small')
+  }
+
+  if (config.provider === 'OPENAI' && !envVars.OPENAI_API_KEY) {
+    errors.push('OPENAI_API_KEY is missing')
+  }
+
+  if (config.provider === 'ANTHROPIC' && !envVars.ANTHROPIC_API_KEY) {
+    errors.push('ANTHROPIC_API_KEY is missing')
+  }
+
+  const hasTelegram = config.channels.some(c => c.type === 'TELEGRAM')
+  if (hasTelegram && !envVars.TELEGRAM_BOT_TOKEN) {
+    errors.push('TELEGRAM_BOT_TOKEN is missing')
+  }
+
+  if (errors.length) {
+    throw new Error(`[Deploy] Invalid config/env: ${errors.join('; ')}`)
   }
 }
 
