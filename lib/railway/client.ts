@@ -53,13 +53,22 @@ export class RailwayClient {
     })
 
     if (!res.ok) {
-      throw new Error(`Railway API HTTP ${res.status}: ${await res.text()}`)
+      const errorText = await res.text()
+      console.error('[Railway] HTTP Error:', {
+        status: res.status,
+        body: errorText,
+        query: query.substring(0, 100),
+        variables: JSON.stringify(variables)?.substring(0, 200)
+      })
+      throw new Error(`Railway API HTTP ${res.status}: ${errorText}`)
     }
 
     const json: GraphQLResponse<T> = await res.json()
 
     if (json.errors?.length) {
       console.error('[Railway] GraphQL errors:', JSON.stringify(json.errors))
+      console.error('[Railway] Query:', query.substring(0, 100))
+      console.error('[Railway] Variables:', JSON.stringify(variables)?.substring(0, 200))
       throw new Error(`Railway API: ${json.errors.map(e => e.message).join(', ')}`)
     }
 
