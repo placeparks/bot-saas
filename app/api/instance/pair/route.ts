@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { approvePairing } from '@/lib/railway/graphql'
+import { RailwayClient } from '@/lib/railway/client'
+import { PAIRING_SCRIPT_B64, buildStartCommand } from '@/lib/railway/deploy'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -24,6 +25,7 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}))
     const channel = String(body?.channel || '').toLowerCase()
     const code = String(body?.code || '').trim()
+    const isRetry = Boolean(body?.retry)
 
     if (!CHANNELS.has(channel)) {
       return NextResponse.json(
@@ -60,24 +62,23 @@ export async function POST(req: Request) {
 
     const cliCommand = `openclaw pairing approve ${channel} ${code}`
 
-    // Check if custom image with pairing API is deployed
+    // --- Method 1: Try the pairing HTTP server on port 18800 ---
     const pairingApiUrl = user.instance.serviceUrl
       ? `${user.instance.serviceUrl.replace('18789', '18800')}/pairing/approve`
       : null
 
-    // Try automated approval if pairing API is available
     if (pairingApiUrl) {
       try {
         const response = await fetch(pairingApiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ channel, code }),
-          signal: AbortSignal.timeout(5000) // 5 second timeout
+          signal: AbortSignal.timeout(8000)
         })
 
         const result = await response.json()
 
-        if (response.ok) {
+        if (response.ok && result.success) {
           return NextResponse.json({
             success: true,
             message: result.message || 'Pairing approved successfully',
@@ -86,38 +87,43 @@ export async function POST(req: Request) {
           })
         }
       } catch (error: any) {
-        console.log('[Pairing] Automated approval failed, showing CLI fallback:', error.message)
-        // Fall through to CLI fallback
+        console.log('[Pairing] HTTP to port 18800 failed:', error.message)
       }
     }
 
-    // Try Railway GraphQL exec as second method
-    const railwayToken = process.env.RAILWAY_TOKEN
-    if (railwayToken && user.instance.containerId) {
+    // --- Method 2: Auto-upgrade instance with embedded pairing server ---
+    // If this is NOT a retry, inject the pairing server into the start command
+    // and redeploy so it's available on the next attempt.
+    if (!isRetry) {
       try {
-        const execResult = await approvePairing({
-          serviceId: user.instance.containerId,
-          channel,
-          code,
-          railwayToken
+        console.log('[Pairing] Auto-upgrading instance to include pairing server...')
+        const railway = new RailwayClient()
+        const serviceId = user.instance.containerId
+
+        // Add pairing script env var + update start command
+        await railway.setVariables(serviceId, {
+          _PAIRING_SCRIPT_B64: PAIRING_SCRIPT_B64
         })
+        await railway.updateServiceInstance(serviceId, {
+          startCommand: buildStartCommand()
+        })
+        // Trigger redeploy to pick up the new start command
+        await railway.redeployService(serviceId)
 
-        if (execResult.success) {
-          return NextResponse.json({
-            success: true,
-            message: 'Pairing approved successfully',
-            output: execResult.output,
-            cliCommand
-          })
-        }
+        console.log('[Pairing] Instance upgrade triggered, awaiting redeploy...')
 
-        console.log('[Pairing] Railway GraphQL exec failed:', execResult.error)
+        return NextResponse.json({
+          success: true,
+          upgrading: true,
+          cliCommand,
+          message: 'Upgrading your instance for one-click pairing. Your bot will restart and be ready in ~45 seconds.'
+        })
       } catch (error: any) {
-        console.log('[Pairing] Railway GraphQL exec error:', error.message)
+        console.log('[Pairing] Auto-upgrade failed:', error.message)
       }
     }
 
-    // Return CLI command for manual approval (last resort)
+    // --- Fallback: CLI instructions ---
     return NextResponse.json({
       success: true,
       cliCommand,
