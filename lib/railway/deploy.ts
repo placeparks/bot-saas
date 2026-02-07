@@ -32,6 +32,8 @@ function readBody(req, cb) {
 }
 
 const server = http.createServer((req, res) => {
+  console.log('[pairing-server]', req.method, req.url);
+
   if (req.method === 'GET' && req.url === '/health') {
     return send(res, 200, { status: 'ok' });
   }
@@ -48,8 +50,10 @@ const server = http.createServer((req, res) => {
       const ch = body.channel || '';
       const code = body.code || '';
       if (!ch || !code) return send(res, 400, { success: false, message: 'Missing channel or code' });
+      console.log('[pairing-server] approving', ch, code);
       const r = spawnSync('openclaw', ['pairing', 'approve', ch, code], { encoding: 'utf8', timeout: 15000 });
       const ok = r.status === 0;
+      console.log('[pairing-server] result:', ok ? 'success' : 'failed', r.stdout, r.stderr);
       return send(res, ok ? 200 : 500, {
         success: ok,
         output: r.stdout || '',
@@ -63,7 +67,9 @@ const server = http.createServer((req, res) => {
 });
 
 // Listen on both IPv4 and IPv6 (Railway internal networking uses IPv6)
-server.listen(18800);
+server.listen(18800, () => {
+  console.log('[pairing-server] listening on port 18800 (dual-stack)');
+});
 `.trim()
 
 /** Base64-encoded pairing server script for embedding in container env vars. */
@@ -76,8 +82,13 @@ export function buildStartCommand(): string {
   return [
     `mkdir -p ${configDir}`,
     `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
-    `echo "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
-    `(node /tmp/pairing-server.js > /tmp/pairing-server.log 2>&1 &)`,
+    // Decode and save pairing server
+    `printf '%s' "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
+    // Start pairing server in background (logs to stdout, will appear in Railway logs)
+    `node /tmp/pairing-server.js &`,
+    // Give it a moment to bind to port
+    `sleep 1`,
+    // Start OpenClaw
     `exec ${openclawCmd} --config ${configDir}/openclaw.json`,
   ].join(' && ')
 }
