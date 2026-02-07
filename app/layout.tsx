@@ -6,7 +6,7 @@ import Providers from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Kainat - Deploy Your AI Assistant in One Click",
+  title: "Mirac - Deploy Your AI Assistant in One Click",
   description: "Get your personal OpenClaw AI assistant deployed instantly. Connect to WhatsApp, Telegram, Discord, and more.",
 };
 
