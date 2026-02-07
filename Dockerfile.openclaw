@@ -9,7 +9,7 @@ RUN apt-get update \
 RUN curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install-cli.sh \
   | bash -s -- --prefix /opt/openclaw --no-onboard
 
-ENV PATH="/opt/openclaw/bin:$PATH"
+ENV PATH="/opt/openclaw/node/bin:/opt/openclaw/bin:$PATH"
 
 COPY openclaw-entrypoint.sh /usr/local/bin/openclaw-entrypoint.sh
 RUN chmod +x /usr/local/bin/openclaw-entrypoint.sh
