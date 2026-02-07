@@ -9,7 +9,9 @@ import {
 import { InstanceStatus } from '@prisma/client'
 import { randomUUID } from 'crypto'
 
-const OPENCLAW_IMAGE = process.env.OPENCLAW_IMAGE || 'ghcr.io/openclaw/openclaw:latest'
+// Use custom wrapper image with our entrypoint baked in
+// Set OPENCLAW_IMAGE env var to override (format: ghcr.io/owner/repo/openclaw-wrapper:latest)
+const OPENCLAW_IMAGE = process.env.OPENCLAW_IMAGE || 'ghcr.io/openclaw/openclaw:latest' // Will be updated after first build
 
 // Minimal Node HTTP server that wraps `openclaw pairing` CLI commands.
 // Runs on port 18800 inside the container alongside OpenClaw (port 18789).
@@ -188,37 +190,9 @@ export async function deployInstance(
       console.warn('⚠️  Failed to persist containerId (will retry later):', err)
     }
 
-    // --- Override start command so the config JSON is written before OpenClaw starts ---
-    // Also starts a lightweight pairing HTTP server on port 18800 (Python3).
-    // NOTE: Railway runs containers as non-root, so we use /tmp instead of /root
-    const startCmd = buildStartCommand()
-
-    console.log('[Railway] Setting start command...')
-    console.log('[Railway] Start command preview:', startCmd.substring(0, 200) + '...')
-
-    try {
-      await retryRailwayCooldown(
-        () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
-        'updateServiceInstance'
-      )
-      console.log('[Railway] ✅ Start command set')
-
-      // Wait for Railway to persist the change
-      console.log('[Railway] Waiting 3s for Railway to persist changes...')
-      await sleep(3000)
-
-      // Trigger redeploy so the new start command takes effect
-      console.log('[Railway] Triggering redeploy...')
-      await retryRailwayCooldown(
-        () => railway.redeployService(serviceId),
-        'redeployService'
-      )
-      console.log('[Railway] ✅ Redeploy triggered - check container logs for [DEBUG] output')
-    } catch (error: any) {
-      console.error('[Railway] ❌ Failed to update start command:', error.message)
-      console.error('[Railway] Stack:', error.stack)
-      throw error // Don't continue if start command update fails
-    }
+    // NOTE: Custom start command logic removed - now using Docker image with baked-in entrypoint
+    // See Dockerfile.openclaw and openclaw-entrypoint.sh
+    console.log('[Railway] ✅ Service created with custom OpenClaw wrapper image')
 
     // Railway private networking uses plain HTTP (no TLS)
     const serviceUrl = `http://${serviceName}.railway.internal:18789`
