@@ -78,28 +78,24 @@ server.listen(18800, () => {
 /** Base64-encoded pairing server script for embedding in container env vars. */
 export const PAIRING_SCRIPT_B64 = Buffer.from(PAIRING_SERVER_JS).toString('base64')
 
-/** Build the start command that runs both the pairing server and OpenClaw. */
-export function buildStartCommand(): string {
+/** Build a start script that runs both the pairing server and OpenClaw. */
+export function buildStartScript(): string {
   const openclawCmd = process.env.OPENCLAW_CMD || '/usr/local/bin/openclaw'
   const configDir = '/tmp/.openclaw'
 
-  // Build command with proper shell syntax for background process
-  const setupCommands = [
+  return [
+    '#!/bin/sh',
+    'set -e',
     `OPENCLAW_BIN="${openclawCmd}"`,
-    'if [ ! -x "$OPENCLAW_BIN" ]; then OPENCLAW_BIN="$(command -v openclaw || true)"; fi',
-    'if [ ! -x "$OPENCLAW_BIN" ]; then for p in /usr/local/bin/openclaw /usr/bin/openclaw /bin/openclaw /app/openclaw /home/node/.openclaw/bin/openclaw /opt/openclaw/openclaw; do if [ -x "$p" ]; then OPENCLAW_BIN="$p"; break; fi; done; fi',
-    'if [ ! -x "$OPENCLAW_BIN" ]; then echo "OpenClaw binary not found (PATH=$PATH)"; ls -l /usr/local/bin || true; ls -l /usr/bin || true; find / -name openclaw -type f 2>/dev/null | head -20 || true; exit 1; fi',
-    'chmod +x "$OPENCLAW_BIN" || true',
+    'if [ ! -x "$OPENCLAW_BIN" ]; then OPENCLAW_BIN="$(command -v openclaw 2>/dev/null || true)"; fi',
+    'if [ ! -x "$OPENCLAW_BIN" ]; then echo "OpenClaw binary not found (PATH=$PATH)"; exit 1; fi',
     `mkdir -p ${configDir}`,
     `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
-    `echo "[DEBUG] OpenClaw config:"`,
-    `cat ${configDir}/openclaw.json | head -20`,
-    `"$OPENCLAW_BIN" doctor --fix || echo "Doctor fix failed, continuing..."`,
     `printf '%s' "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
-  ].join('; ')
-
-  // Background process and final command must use semicolons, not &&
-  return `${setupCommands}; node /tmp/pairing-server.js & sleep 1; exec "$OPENCLAW_BIN" --config ${configDir}/openclaw.json`
+    'node /tmp/pairing-server.js &',
+    'sleep 1',
+    `exec "$OPENCLAW_BIN" --config ${configDir}/openclaw.json`,
+  ].join('\n')
 }
 
 /**
@@ -107,9 +103,8 @@ export function buildStartCommand(): string {
  * env vars like $OPENCLAW_CONFIG expand at runtime.
  */
 export function buildRailwayStartCommand(): string {
-  const raw = buildStartCommand()
-  const escaped = raw.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
-  return `/bin/sh -c "${escaped}"`
+  const scriptB64 = Buffer.from(buildStartScript()).toString('base64')
+  return `/bin/sh -c "printf '%s' '${scriptB64}' | base64 -d > /tmp/openclaw-start.sh && /bin/sh /tmp/openclaw-start.sh"`
 }
 
 const POLL_INTERVAL_MS = 3000
