@@ -11,7 +11,7 @@ import { randomUUID } from 'crypto'
 
 // Use custom wrapper image with our entrypoint baked in
 // Set OPENCLAW_IMAGE env var to override (format: ghcr.io/owner/repo/openclaw-wrapper:latest)
-const OPENCLAW_IMAGE = process.env.OPENCLAW_IMAGE || 'ghcr.io/openclaw/openclaw:latest' // Will be updated after first build
+const OPENCLAW_IMAGE = process.env.OPENCLAW_IMAGE || 'ghcr.io/placeparks/bot-saas/openclaw-wrapper:latest'
 
 // Minimal Node HTTP server that wraps `openclaw pairing` CLI commands.
 // Runs on port 18800 inside the container alongside OpenClaw (port 18789).
