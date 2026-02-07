@@ -258,9 +258,9 @@ export class RailwayClient {
   /** Restart a running deployment in-place. */
   async restartDeployment(deploymentId: string): Promise<void> {
     await this.graphql(`
-      mutation deploymentRestart($deploymentId: String!) {
-        deploymentRestart(deploymentId: $deploymentId)
+      mutation deploymentRestart($id: String!) {
+        deploymentRestart(id: $id)
       }
-    `, { deploymentId })
+    `, { id: deploymentId })
   }
 }
