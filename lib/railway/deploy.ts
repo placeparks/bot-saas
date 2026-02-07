@@ -10,50 +10,63 @@ import { InstanceStatus } from '@prisma/client'
 
 const OPENCLAW_IMAGE = process.env.OPENCLAW_IMAGE || 'ghcr.io/openclaw/openclaw:latest'
 
-// Minimal Python HTTP server that wraps `openclaw pairing` CLI commands.
+// Minimal Node HTTP server that wraps `openclaw pairing` CLI commands.
 // Runs on port 18800 inside the container alongside OpenClaw (port 18789).
-const PAIRING_SERVER_PY = `
-from http.server import HTTPServer, BaseHTTPRequestHandler
-import subprocess, json
+const PAIRING_SERVER_JS = `
+const http = require('http');
+const { spawnSync } = require('child_process');
 
-class H(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == '/health':
-            self._ok({'status': 'ok'})
-        elif self.path.startswith('/pairing/list/'):
-            ch = self.path.rsplit('/', 1)[-1]
-            r = subprocess.run(['openclaw', 'pairing', 'list', ch], capture_output=True, text=True, timeout=10)
-            self._ok({'success': r.returncode == 0, 'raw': r.stdout, 'requests': []})
-        else:
-            self.send_response(404); self.end_headers()
+function send(res, code, data) {
+  const payload = JSON.stringify(data);
+  res.writeHead(code, { 'Content-Type': 'application/json' });
+  res.end(payload);
+}
 
-    def do_POST(self):
-        if self.path == '/pairing/approve':
-            n = int(self.headers.get('Content-Length', 0))
-            b = json.loads(self.rfile.read(n)) if n else {}
-            ch, code = b.get('channel', ''), b.get('code', '')
-            if not ch or not code:
-                self._ok({'success': False, 'message': 'Missing channel or code'}, 400)
-                return
-            r = subprocess.run(['openclaw', 'pairing', 'approve', ch, code], capture_output=True, text=True, timeout=15)
-            ok = r.returncode == 0
-            self._ok({'success': ok, 'output': r.stdout, 'message': 'Pairing approved successfully' if ok else r.stderr}, 200 if ok else 500)
-        else:
-            self.send_response(404); self.end_headers()
+function readBody(req, cb) {
+  let buf = '';
+  req.on('data', (c) => { buf += c; });
+  req.on('end', () => {
+    try { cb(null, buf ? JSON.parse(buf) : {}); }
+    catch (e) { cb(e); }
+  });
+}
 
-    def _ok(self, data, code=200):
-        self.send_response(code)
-        self.send_header('Content-Type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps(data).encode())
+const server = http.createServer((req, res) => {
+  if (req.method === 'GET' && req.url === '/health') {
+    return send(res, 200, { status: 'ok' });
+  }
 
-    def log_message(self, *a): pass
+  if (req.method === 'GET' && req.url && req.url.startsWith('/pairing/list/')) {
+    const ch = req.url.split('/').pop();
+    const r = spawnSync('openclaw', ['pairing', 'list', ch], { encoding: 'utf8', timeout: 10000 });
+    return send(res, 200, { success: r.status === 0, raw: r.stdout || '', requests: [] });
+  }
 
-HTTPServer(('0.0.0.0', 18800), H).serve_forever()
+  if (req.method === 'POST' && req.url === '/pairing/approve') {
+    return readBody(req, (err, body) => {
+      if (err) return send(res, 400, { success: false, message: 'Invalid JSON' });
+      const ch = body.channel || '';
+      const code = body.code || '';
+      if (!ch || !code) return send(res, 400, { success: false, message: 'Missing channel or code' });
+      const r = spawnSync('openclaw', ['pairing', 'approve', ch, code], { encoding: 'utf8', timeout: 15000 });
+      const ok = r.status === 0;
+      return send(res, ok ? 200 : 500, {
+        success: ok,
+        output: r.stdout || '',
+        message: ok ? 'Pairing approved successfully' : (r.stderr || 'Pairing failed')
+      });
+    });
+  }
+
+  res.writeHead(404);
+  res.end();
+});
+
+server.listen(18800, '0.0.0.0');
 `.trim()
 
 /** Base64-encoded pairing server script for embedding in container env vars. */
-export const PAIRING_SCRIPT_B64 = Buffer.from(PAIRING_SERVER_PY).toString('base64')
+export const PAIRING_SCRIPT_B64 = Buffer.from(PAIRING_SERVER_JS).toString('base64')
 
 /** Build the start command that runs both the pairing server and OpenClaw. */
 export function buildStartCommand(): string {
@@ -62,7 +75,8 @@ export function buildStartCommand(): string {
   return [
     `mkdir -p ${configDir}`,
     `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
-    `(echo "$_PAIRING_SCRIPT_B64" | base64 -d | python3 - &) 2>/dev/null || true`,
+    `echo "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
+    `(node /tmp/pairing-server.js &) 2>/dev/null || true`,
     `exec ${openclawCmd} --config ${configDir}/openclaw.json`,
   ].join(' && ')
 }
