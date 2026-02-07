@@ -80,21 +80,25 @@ export const PAIRING_SCRIPT_B64 = Buffer.from(PAIRING_SERVER_JS).toString('base6
 
 /** Build the start command that runs both the pairing server and OpenClaw. */
 export function buildStartCommand(): string {
-  const openclawCmd = process.env.OPENCLAW_CMD || 'openclaw'
+  const openclawCmd = process.env.OPENCLAW_CMD || '/usr/local/bin/openclaw'
   const configDir = '/tmp/.openclaw'
 
   // Build command with proper shell syntax for background process
   const setupCommands = [
+    `OPENCLAW_BIN="${openclawCmd}"`,
+    `if [ ! -x "$OPENCLAW_BIN" ]; then OPENCLAW_BIN="$(command -v openclaw || true)"; fi`,
+    `if [ -z "$OPENCLAW_BIN" ]; then echo "OpenClaw binary not found"; exit 1; fi`,
+    `chmod +x "$OPENCLAW_BIN" || true`,
     `mkdir -p ${configDir}`,
     `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
     `echo "[DEBUG] OpenClaw config:"`,
     `cat ${configDir}/openclaw.json | head -20`,
-    `${openclawCmd} doctor --fix || echo "Doctor fix failed, continuing..."`,
+    `"$OPENCLAW_BIN" doctor --fix || echo "Doctor fix failed, continuing..."`,
     `printf '%s' "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
   ].join(' && ')
 
   // Background process and final command must use semicolons, not &&
-  return `${setupCommands} && node /tmp/pairing-server.js & sleep 1 && exec ${openclawCmd} --config ${configDir}/openclaw.json`
+  return `${setupCommands} && node /tmp/pairing-server.js & sleep 1 && exec "$OPENCLAW_BIN" --config ${configDir}/openclaw.json`
 }
 
 /**
