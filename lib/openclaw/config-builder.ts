@@ -22,15 +22,17 @@ export interface UserConfiguration {
   thinkingMode?: string
   sessionMode?: string
   dmPolicy?: string
+  gatewayToken?: string
 }
 
 export function generateOpenClawConfig(userConfig: UserConfiguration) {
   const config: any = {
     gateway: {
-      host: '0.0.0.0', // Listen on all network interfaces (Railway internal networking requires this)
+      bind: 'lan',
       port: 18789,
       auth: {
-        mode: 'token' // Use token authentication (token passed via --token flag or OPENCLAW_GATEWAY_TOKEN env)
+        mode: 'token',
+        token: userConfig.gatewayToken
       }
     },
     agents: {
