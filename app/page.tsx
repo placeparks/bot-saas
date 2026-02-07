@@ -9,7 +9,7 @@ export default function Home() {
         <nav className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Bot className="h-8 w-8 text-purple-600" />
-            <span className="text-2xl font-bold">Kainat</span>
+            <span className="text-2xl font-bold">Mirac</span>
           </div>
           <div className="flex items-center space-x-6">
             <Link href="/features" className="text-gray-600 hover:text-gray-900">
@@ -156,7 +156,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t mt-24 py-12">
         <div className="container mx-auto px-4 text-center text-gray-600">
-          <p>&copy; 2026 Kainat. Built on top of OpenClaw. All rights reserved.</p>
+          <p>&copy; 2026 Mirac. Built on top of OpenClaw. All rights reserved.</p>
         </div>
       </footer>
     </div>
