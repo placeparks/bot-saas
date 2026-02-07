@@ -263,4 +263,25 @@ export class RailwayClient {
       }
     `, { id: deploymentId })
   }
+
+  /** Get environment variables for a service. */
+  async getVariables(serviceId: string): Promise<Record<string, string>> {
+    const { variablesForServiceAndEnvironment } = await this.graphql<{
+      variablesForServiceAndEnvironment: Record<string, string>
+    }>(`
+      query variables($projectId: String!, $environmentId: String!, $serviceId: String!) {
+        variablesForServiceAndEnvironment(
+          projectId: $projectId
+          environmentId: $environmentId
+          serviceId: $serviceId
+        )
+      }
+    `, {
+      projectId: this.projectId,
+      environmentId: this.environmentId,
+      serviceId,
+    })
+
+    return variablesForServiceAndEnvironment || {}
+  }
 }
