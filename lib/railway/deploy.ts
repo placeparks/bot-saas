@@ -80,37 +80,21 @@ export const PAIRING_SCRIPT_B64 = Buffer.from(PAIRING_SERVER_JS).toString('base6
 
 /** Build a start script that runs both the pairing server and OpenClaw. */
 export function buildStartScript(): string {
-  const openclawCmd = process.env.OPENCLAW_CMD || '/usr/local/bin/openclaw'
+  const openclawCmd = process.env.OPENCLAW_CMD || 'openclaw'
   const configDir = '/tmp/.openclaw'
 
   return [
     '#!/bin/sh',
     'set -e',
-    'export PATH="/home/node/.openclaw/bin:/opt/openclaw:/app:$PATH"',
     `OPENCLAW_BIN="${openclawCmd}"`,
     'if [ ! -x "$OPENCLAW_BIN" ]; then OPENCLAW_BIN="$(command -v openclaw 2>/dev/null || true)"; fi',
-    'if [ ! -x "$OPENCLAW_BIN" ]; then',
-    '  for p in /usr/local/bin/openclaw /usr/bin/openclaw /bin/openclaw /app/openclaw /home/node/.openclaw/bin/openclaw /opt/openclaw/openclaw; do',
-    '    if [ -x "$p" ]; then OPENCLAW_BIN="$p"; break; fi',
-    '  done',
-    'fi',
-    'if [ ! -x "$OPENCLAW_BIN" ]; then',
-    '  echo "OpenClaw binary not found (PATH=$PATH)"',
-    '  echo "[DEBUG] Searching for openclaw binary..."',
-    '  find / -name openclaw -type f 2>/dev/null | head -50 || true',
-    '  echo "[DEBUG] Listing /usr/local/bin and /usr/bin (if present)..."',
-    '  ls -l /usr/local/bin 2>/dev/null || true',
-    '  ls -l /usr/bin 2>/dev/null || true',
-    '  exit 1',
-    'fi',
+    'if [ ! -x "$OPENCLAW_BIN" ]; then echo "OpenClaw binary not found (PATH=$PATH)"; exit 1; fi',
     `mkdir -p ${configDir}`,
     `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
     `printf '%s' "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
-    'NODE_BIN="$(command -v node 2>/dev/null || true)"',
-    'if [ -z "$NODE_BIN" ]; then NODE_BIN="/opt/openclaw/node/bin/node"; fi',
-    'if [ -x "$NODE_BIN" ]; then "$NODE_BIN" /tmp/pairing-server.js & else echo "node not found; pairing server disabled"; fi',
+    'node /tmp/pairing-server.js &',
     'sleep 1',
-    `exec "$OPENCLAW_BIN" gateway --config ${configDir}/openclaw.json`,
+    `exec "$OPENCLAW_BIN" --config ${configDir}/openclaw.json`,
   ].join('\n')
 }
 
@@ -214,6 +198,26 @@ export async function deployInstance(
       })
     } catch (err) {
       console.warn('⚠️  Failed to persist containerId (will retry later):', err)
+    }
+
+    // Override start command so env vars expand in a shell and the pairing server boots.
+    const startCmd = buildRailwayStartCommand()
+    try {
+      await retryRailwayCooldown(
+        () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
+        'updateServiceInstance'
+      )
+      console.log('[Railway] ✅ Start command set, triggering redeploy...')
+
+      // Trigger redeploy so the new start command takes effect
+      await retryRailwayCooldown(
+        () => railway.redeployService(serviceId),
+        'redeployService'
+      )
+      console.log('[Railway] ✅ Redeploy triggered with new start command')
+    } catch (error: any) {
+      console.warn('[Railway] Failed to update start command:', error.message)
+      console.warn('[Railway] Pairing server will need to be injected on first use')
     }
 
     console.log('[Railway] ✅ Service created with custom OpenClaw wrapper image')
