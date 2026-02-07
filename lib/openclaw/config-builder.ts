@@ -27,7 +27,8 @@ export interface UserConfiguration {
 export function generateOpenClawConfig(userConfig: UserConfiguration) {
   const config: any = {
     gateway: {
-      bind: 'lan', // Listen on all network interfaces for Railway internal networking
+      host: '0.0.0.0', // Listen on all network interfaces (Railway internal networking requires this)
+      port: 18789,
       auth: {
         mode: 'token' // Use token authentication (token passed via --token flag or OPENCLAW_GATEWAY_TOKEN env)
       }
