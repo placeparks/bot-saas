@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { RailwayClient } from '@/lib/railway/client'
-import { PAIRING_SCRIPT_B64, buildStartCommand } from '@/lib/railway/deploy'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -25,8 +23,6 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}))
     const channel = String(body?.channel || '').toLowerCase()
     const code = String(body?.code || '').trim()
-    const isRetry = Boolean(body?.retry)
-
     if (!CHANNELS.has(channel)) {
       return NextResponse.json(
         { error: 'Unsupported channel' },
@@ -88,35 +84,6 @@ export async function POST(req: Request) {
         }
       } catch (error: any) {
         console.log('[Pairing] HTTP to port 18800 failed:', error.message)
-      }
-    }
-
-    // --- Method 2: Auto-upgrade instance with embedded pairing server ---
-    // If this is NOT a retry, inject the pairing server into the start command
-    // and redeploy so it's available on the next attempt.
-    if (!isRetry) {
-      try {
-        console.log('[Pairing] Auto-upgrading instance to include pairing server...')
-        const railway = new RailwayClient()
-        const serviceId = user.instance.containerId
-
-        // Add pairing script env var + update start command
-        await railway.setVariables(serviceId, {
-          _PAIRING_SCRIPT_B64: PAIRING_SCRIPT_B64
-        })
-        await railway.updateServiceInstance(serviceId, {
-          startCommand: buildStartCommand()
-        })
-        console.log('[Pairing] Instance upgraded; Railway will redeploy in its own time.')
-
-        return NextResponse.json({
-          success: true,
-          upgrading: true,
-          cliCommand,
-          message: 'Upgrading your instance for one-click pairing. Your bot will restart and be ready in ~45 seconds.'
-        })
-      } catch (error: any) {
-        console.log('[Pairing] Auto-upgrade failed:', error.message)
       }
     }
 
