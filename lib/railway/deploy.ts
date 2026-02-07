@@ -106,9 +106,11 @@ export function buildStartScript(): string {
     `mkdir -p ${configDir}`,
     `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
     `printf '%s' "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
-    'node /tmp/pairing-server.js &',
+    'NODE_BIN="$(command -v node 2>/dev/null || true)"',
+    'if [ -z "$NODE_BIN" ]; then NODE_BIN="/opt/openclaw/node/bin/node"; fi',
+    'if [ -x "$NODE_BIN" ]; then "$NODE_BIN" /tmp/pairing-server.js & else echo "node not found; pairing server disabled"; fi',
     'sleep 1',
-    `exec "$OPENCLAW_BIN" --config ${configDir}/openclaw.json`,
+    `exec "$OPENCLAW_BIN" gateway --config ${configDir}/openclaw.json`,
   ].join('\n')
 }
 
