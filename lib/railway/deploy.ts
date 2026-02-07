@@ -106,10 +106,10 @@ export function buildStartCommand(): string {
     `cat ${configDir}/openclaw.json | head -20`,
     `"$OPENCLAW_BIN" doctor --fix || echo "Doctor fix failed, continuing..."`,
     `printf '%s' "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
-  ].join(' && ')
+  ].join('; ')
 
   // Background process and final command must use semicolons, not &&
-  return `${setupCommands} && node /tmp/pairing-server.js & sleep 1 && exec "$OPENCLAW_BIN" --config ${configDir}/openclaw.json`
+  return `${setupCommands}; node /tmp/pairing-server.js & sleep 1; exec "$OPENCLAW_BIN" --config ${configDir}/openclaw.json`
 }
 
 /**
