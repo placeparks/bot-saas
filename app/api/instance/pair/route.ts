@@ -59,9 +59,15 @@ export async function POST(req: Request) {
     const cliCommand = `openclaw pairing approve ${channel} ${code}`
 
     // --- Method 1: Try the pairing HTTP server on port 18800 ---
-    const pairingApiUrl = user.instance.serviceUrl
-      ? `${user.instance.serviceUrl.replace('18789', '18800')}/pairing/approve`
+    // Ensure http:// (Railway internal networking is plain TCP, no TLS)
+    const rawUrl = user.instance.serviceUrl || ''
+    const httpUrl = rawUrl.replace(/^https:\/\//, 'http://')
+    const pairingApiUrl = httpUrl
+      ? `${httpUrl.replace(':18789', ':18800')}/pairing/approve`
       : null
+
+    console.log('[Pairing] serviceUrl from DB:', rawUrl)
+    console.log('[Pairing] calling pairing API at:', pairingApiUrl)
 
     if (pairingApiUrl) {
       try {
@@ -69,10 +75,11 @@ export async function POST(req: Request) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ channel, code }),
-          signal: AbortSignal.timeout(8000)
+          signal: AbortSignal.timeout(10000)
         })
 
         const result = await response.json()
+        console.log('[Pairing] response status:', response.status, 'body:', JSON.stringify(result))
 
         if (response.ok && result.success) {
           return NextResponse.json({
@@ -83,7 +90,7 @@ export async function POST(req: Request) {
           })
         }
       } catch (error: any) {
-        console.log('[Pairing] HTTP to port 18800 failed:', error.message)
+        console.log('[Pairing] HTTP to port 18800 failed:', error.message, error.cause || '')
       }
     }
 
