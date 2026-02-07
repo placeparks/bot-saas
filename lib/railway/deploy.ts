@@ -87,6 +87,7 @@ export function buildStartCommand(): string {
     `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
     `echo "[DEBUG] OpenClaw config:"`,
     `cat ${configDir}/openclaw.json | head -20`,
+    `${openclawCmd} doctor --fix || echo "Doctor fix failed, continuing..."`,
     `printf '%s' "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
   ].join(' && ')
 
@@ -192,22 +193,31 @@ export async function deployInstance(
     // NOTE: Railway runs containers as non-root, so we use /tmp instead of /root
     const startCmd = buildStartCommand()
 
+    console.log('[Railway] Setting start command...')
+    console.log('[Railway] Start command preview:', startCmd.substring(0, 200) + '...')
+
     try {
       await retryRailwayCooldown(
         () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
         'updateServiceInstance'
       )
-      console.log('[Railway] ✅ Start command set, triggering redeploy...')
+      console.log('[Railway] ✅ Start command set')
+
+      // Wait for Railway to persist the change
+      console.log('[Railway] Waiting 3s for Railway to persist changes...')
+      await sleep(3000)
 
       // Trigger redeploy so the new start command takes effect
+      console.log('[Railway] Triggering redeploy...')
       await retryRailwayCooldown(
         () => railway.redeployService(serviceId),
         'redeployService'
       )
-      console.log('[Railway] ✅ Redeploy triggered with new start command')
+      console.log('[Railway] ✅ Redeploy triggered - check container logs for [DEBUG] output')
     } catch (error: any) {
-      console.warn('[Railway] Failed to update start command:', error.message)
-      console.warn('[Railway] Pairing server will need to be injected on first use')
+      console.error('[Railway] ❌ Failed to update start command:', error.message)
+      console.error('[Railway] Stack:', error.stack)
+      throw error // Don't continue if start command update fails
     }
 
     // Railway private networking uses plain HTTP (no TLS)
