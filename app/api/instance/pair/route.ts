@@ -17,28 +17,8 @@ const PAIRING_SERVICE_API_KEY = process.env.PAIRING_SERVICE_API_KEY
 async function getGatewayToken(serviceId: string): Promise<string | null> {
   try {
     const railway = new RailwayClient()
-    const query = `
-      query GetVariables($serviceId: String!, $environmentId: String!) {
-        variables(serviceId: $serviceId, environmentId: $environmentId) {
-          edges {
-            node {
-              name
-              value
-            }
-          }
-        }
-      }
-    `
-
-    const result: any = await (railway as any).graphql(query, {
-      serviceId,
-      environmentId: process.env.RAILWAY_ENVIRONMENT_ID
-    })
-
-    const variables = result?.variables?.edges || []
-    const gatewayTokenVar = variables.find((v: any) => v.node.name === 'OPENCLAW_GATEWAY_TOKEN')
-
-    return gatewayTokenVar?.node?.value || null
+    const variables = await railway.getVariables(serviceId)
+    return variables.OPENCLAW_GATEWAY_TOKEN || null
   } catch (error) {
     console.error('[Pairing] Failed to get gateway token:', error)
     return null
