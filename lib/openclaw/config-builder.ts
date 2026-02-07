@@ -26,6 +26,12 @@ export interface UserConfiguration {
 
 export function generateOpenClawConfig(userConfig: UserConfiguration) {
   const config: any = {
+    gateway: {
+      bind: 'lan', // Listen on all network interfaces for Railway internal networking
+      auth: {
+        mode: 'token' // Use token authentication (token passed via --token flag or OPENCLAW_GATEWAY_TOKEN env)
+      }
+    },
     agents: {
       defaults: {
         workspace: userConfig.workspace || '~/.openclaw/workspace',
