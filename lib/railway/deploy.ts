@@ -199,7 +199,14 @@ export async function deployInstance(
         () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
         'updateServiceInstance'
       )
-      console.log('[Railway] ✅ Start command set (will take effect on next restart)')
+      console.log('[Railway] ✅ Start command set, triggering redeploy...')
+
+      // Trigger redeploy so the new start command takes effect
+      await retryRailwayCooldown(
+        () => railway.redeployService(serviceId),
+        'redeployService'
+      )
+      console.log('[Railway] ✅ Redeploy triggered with new start command')
     } catch (error: any) {
       console.warn('[Railway] Failed to update start command:', error.message)
       console.warn('[Railway] Pairing server will need to be injected on first use')
