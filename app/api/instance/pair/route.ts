@@ -107,10 +107,7 @@ export async function POST(req: Request) {
         await railway.updateServiceInstance(serviceId, {
           startCommand: buildStartCommand()
         })
-        // Trigger redeploy to pick up the new start command
-        await railway.redeployService(serviceId)
-
-        console.log('[Pairing] Instance upgrade triggered, awaiting redeploy...')
+        console.log('[Pairing] Instance upgraded; Railway will redeploy in its own time.')
 
         return NextResponse.json({
           success: true,
