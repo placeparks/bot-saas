@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { RailwayClient } from '@/lib/railway/client'
-import { PAIRING_SCRIPT_B64 } from '@/lib/railway/deploy'
+import { buildRailwayStartCommand, PAIRING_SCRIPT_B64 } from '@/lib/railway/deploy'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -33,11 +33,17 @@ export async function POST(req: Request) {
     const serviceId = user.instance.containerId
 
     // Update pairing server env var + start command
-    console.log('[Redeploy] Updating pairing server script...')
+    const startCmd = buildRailwayStartCommand()
+    console.log('[Redeploy] Updating pairing server script and start command...')
+    console.log('[Redeploy] Start command:', startCmd)
     console.log('[Redeploy] Script size (base64):', PAIRING_SCRIPT_B64.length, 'chars')
 
     await railway.setVariables(serviceId, {
       _PAIRING_SCRIPT_B64: PAIRING_SCRIPT_B64
+    })
+
+    await railway.updateServiceInstance(serviceId, {
+      startCommand: startCmd
     })
 
     // Trigger a fresh deployment
