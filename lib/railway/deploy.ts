@@ -97,6 +97,16 @@ export function buildStartCommand(): string {
   return `${setupCommands} && node /tmp/pairing-server.js & sleep 1 && exec ${openclawCmd} --config ${configDir}/openclaw.json`
 }
 
+/**
+ * Railway image deployments run start commands in exec form. Wrap in a shell so
+ * env vars like $OPENCLAW_CONFIG expand at runtime.
+ */
+export function buildRailwayStartCommand(): string {
+  const raw = buildStartCommand()
+  const escaped = raw.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  return `/bin/sh -c "${escaped}"`
+}
+
 const POLL_INTERVAL_MS = 3000
 const DEPLOY_TIMEOUT_MS = 120_000 // 2 minutes
 const RAILWAY_COOLDOWN_MAX_MS = 180_000 // 3 minutes
@@ -190,8 +200,26 @@ export async function deployInstance(
       console.warn('⚠️  Failed to persist containerId (will retry later):', err)
     }
 
-    // NOTE: Custom start command logic removed - now using Docker image with baked-in entrypoint
-    // See Dockerfile.openclaw and openclaw-entrypoint.sh
+    // Override start command so env vars expand in a shell and the pairing server boots.
+    const startCmd = buildRailwayStartCommand()
+    try {
+      await retryRailwayCooldown(
+        () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
+        'updateServiceInstance'
+      )
+      console.log('[Railway] ✅ Start command set, triggering redeploy...')
+
+      // Trigger redeploy so the new start command takes effect
+      await retryRailwayCooldown(
+        () => railway.redeployService(serviceId),
+        'redeployService'
+      )
+      console.log('[Railway] ✅ Redeploy triggered with new start command')
+    } catch (error: any) {
+      console.warn('[Railway] Failed to update start command:', error.message)
+      console.warn('[Railway] Pairing server will need to be injected on first use')
+    }
+
     console.log('[Railway] ✅ Service created with custom OpenClaw wrapper image')
 
     // Railway private networking uses plain HTTP (no TLS)
