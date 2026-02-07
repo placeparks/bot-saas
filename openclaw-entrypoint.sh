@@ -3,7 +3,7 @@ set -e
 
 echo "[ENTRYPOINT] Starting OpenClaw wrapper..."
 
-CONFIG_DIR="/tmp/.openclaw"
+CONFIG_DIR="${OPENCLAW_CONFIG_DIR:-$HOME/.openclaw}"
 mkdir -p "$CONFIG_DIR"
 
 # Check if OPENCLAW_CONFIG is set
@@ -36,6 +36,9 @@ if [ -n "$_PAIRING_SCRIPT_B64" ]; then
     if [ -z "$NODE_BIN" ] && [ -x "/opt/openclaw/node/bin/node" ]; then
         NODE_BIN="/opt/openclaw/node/bin/node"
     fi
+    if [ -z "$NODE_BIN" ] && [ -x "/opt/openclaw/node/node" ]; then
+        NODE_BIN="/opt/openclaw/node/node"
+    fi
     if [ -n "$NODE_BIN" ]; then
         "$NODE_BIN" /tmp/pairing-server.js &
         echo "[ENTRYPOINT] Pairing server started (PID: $!)"
@@ -47,7 +50,7 @@ fi
 
 # Start OpenClaw gateway with config (do NOT run doctor --fix, it causes issues)
 echo "[ENTRYPOINT] Starting OpenClaw with config..."
-echo "[ENTRYPOINT] Command: openclaw gateway --config $CONFIG_DIR/openclaw.json"
+echo "[ENTRYPOINT] Command: openclaw gateway"
 
 # Use exec to replace the shell with openclaw (so it receives signals properly)
-exec openclaw gateway --config "$CONFIG_DIR/openclaw.json"
+exec openclaw gateway
