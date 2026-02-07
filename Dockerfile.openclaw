@@ -1,14 +1,8 @@
-# Wrapper Dockerfile that adds our custom entrypoint to OpenClaw
 FROM ghcr.io/openclaw/openclaw:latest
-
-# Create minimal entrypoint - use cat with heredoc (proper syntax this time)
-RUN cat > /entrypoint.sh <<'EOF' \
-&& chmod +x /entrypoint.sh
-#!/bin/sh
-set -e
-mkdir -p /tmp/.openclaw
-printf '%s' "$OPENCLAW_CONFIG" > /tmp/.openclaw/config.json
-exec openclaw --config /tmp/.openclaw/config.json
-EOF
-
+RUN echo "#!/bin/sh" > /entrypoint.sh
+RUN echo "set -e" >> /entrypoint.sh
+RUN echo "mkdir -p /tmp/.openclaw" >> /entrypoint.sh
+RUN echo "printf '%s' \"\$OPENCLAW_CONFIG\" > /tmp/.openclaw/config.json" >> /entrypoint.sh
+RUN echo "exec openclaw --config /tmp/.openclaw/config.json" >> /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
