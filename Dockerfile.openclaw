@@ -1,8 +1,2 @@
 FROM ghcr.io/openclaw/openclaw:latest
-RUN echo "#!/bin/sh" > /entrypoint.sh
-RUN echo "set -e" >> /entrypoint.sh
-RUN echo "mkdir -p /tmp/.openclaw" >> /entrypoint.sh
-RUN echo "printf '%s' \"\$OPENCLAW_CONFIG\" > /tmp/.openclaw/config.json" >> /entrypoint.sh
-RUN echo "exec openclaw --config /tmp/.openclaw/config.json" >> /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["sh", "-c", "mkdir -p /tmp/.openclaw && echo \"$OPENCLAW_CONFIG\" > /tmp/.openclaw/c.json && exec openclaw --config /tmp/.openclaw/c.json"]
