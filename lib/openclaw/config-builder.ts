@@ -26,9 +26,16 @@ export interface UserConfiguration {
 }
 
 export function generateOpenClawConfig(userConfig: UserConfiguration) {
+  const normalizeAllowlist = (value: any): string[] => {
+    if (!value) return []
+    if (Array.isArray(value)) return value.filter(Boolean).map(String)
+    if (typeof value === 'string') return [value]
+    return []
+  }
+
   const config: any = {
     gateway: {
-      bind: '0.0.0.0',
+      bind: 'lan',
       port: 18789,
       auth: {
         mode: 'token',
@@ -90,7 +97,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
       case 'WHATSAPP':
         config.channels.whatsapp = {
           enabled: true,
-          allowFrom: channel.config.allowlist || [],
+          allowFrom: normalizeAllowlist(channel.config.allowlist),
           dmPolicy: userConfig.dmPolicy || 'pairing',
           ...(channel.config.groups && { groups: channel.config.groups })
         }
@@ -100,7 +107,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
         config.channels.telegram = {
           enabled: true,
           botToken: channel.config.botToken,
-          allowFrom: channel.config.allowlist || [],
+          allowFrom: normalizeAllowlist(channel.config.allowlist),
           dmPolicy: userConfig.dmPolicy || 'pairing'
         }
         break
@@ -112,7 +119,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
           applicationId: channel.config.applicationId,
           dm: {
             policy: userConfig.dmPolicy || 'pairing',
-            allowFrom: channel.config.allowlist || []
+            allowFrom: normalizeAllowlist(channel.config.allowlist)
           },
           ...(channel.config.guilds && { guilds: channel.config.guilds })
         }
@@ -125,7 +132,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
           appToken: channel.config.appToken,
           dm: {
             policy: userConfig.dmPolicy || 'pairing',
-            allowFrom: channel.config.allowlist || []
+            allowFrom: normalizeAllowlist(channel.config.allowlist)
           }
         }
         break
@@ -134,7 +141,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
         config.channels.signal = {
           enabled: true,
           phoneNumber: channel.config.phoneNumber,
-          allowFrom: channel.config.allowlist || []
+          allowFrom: normalizeAllowlist(channel.config.allowlist)
         }
         break
 
