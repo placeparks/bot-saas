@@ -88,9 +88,9 @@ export function buildStartCommand(): string {
     `node /tmp/pairing-server.js &`,
     // Give it a moment to bind to port
     `sleep 1`,
-    // Start OpenClaw with --bind lan to listen on all network interfaces (required for Railway internal networking)
+    // Start OpenClaw (config file specifies host: 0.0.0.0 for Railway internal networking)
     // Pass --token explicitly to ensure gateway auth works
-    `exec ${openclawCmd} --bind lan --token "$OPENCLAW_GATEWAY_TOKEN" --config ${configDir}/openclaw.json`,
+    `exec ${openclawCmd} --token "$OPENCLAW_GATEWAY_TOKEN" --config ${configDir}/openclaw.json`,
   ].join(' && ')
 }
 
