@@ -1,9 +1,15 @@
 # Wrapper Dockerfile that adds our custom entrypoint to OpenClaw
 FROM ghcr.io/openclaw/openclaw:latest
 
+# Install dos2unix to handle line endings
+RUN apt-get update && apt-get install -y dos2unix && rm -rf /var/lib/apt/lists/*
+
 # Copy our custom entrypoint script
-COPY openclaw-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/openclaw-entrypoint.sh
+COPY openclaw-entrypoint.sh /usr/local/bin/openclaw-entrypoint.sh
+
+# Fix line endings and make executable
+RUN dos2unix /usr/local/bin/openclaw-entrypoint.sh && \
+    chmod +x /usr/local/bin/openclaw-entrypoint.sh
 
 # Use our entrypoint
 ENTRYPOINT ["/usr/local/bin/openclaw-entrypoint.sh"]
