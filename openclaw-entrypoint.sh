@@ -32,14 +32,22 @@ echo "[ENTRYPOINT] ..."
 if [ -n "$_PAIRING_SCRIPT_B64" ]; then
     echo "[ENTRYPOINT] Starting pairing server on port 18800..."
     printf '%s' "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js
-    node /tmp/pairing-server.js &
-    echo "[ENTRYPOINT] Pairing server started (PID: $!)"
-    sleep 1
+    NODE_BIN="$(command -v node 2>/dev/null || true)"
+    if [ -z "$NODE_BIN" ] && [ -x "/opt/openclaw/node/bin/node" ]; then
+        NODE_BIN="/opt/openclaw/node/bin/node"
+    fi
+    if [ -n "$NODE_BIN" ]; then
+        "$NODE_BIN" /tmp/pairing-server.js &
+        echo "[ENTRYPOINT] Pairing server started (PID: $!)"
+        sleep 1
+    else
+        echo "[ENTRYPOINT] node not found; pairing server disabled"
+    fi
 fi
 
-# Start OpenClaw with config (do NOT run doctor --fix, it causes issues)
+# Start OpenClaw gateway with config (do NOT run doctor --fix, it causes issues)
 echo "[ENTRYPOINT] Starting OpenClaw with config..."
-echo "[ENTRYPOINT] Command: openclaw --config $CONFIG_DIR/openclaw.json"
+echo "[ENTRYPOINT] Command: openclaw gateway --config $CONFIG_DIR/openclaw.json"
 
 # Use exec to replace the shell with openclaw (so it receives signals properly)
-exec openclaw --config "$CONFIG_DIR/openclaw.json"
+exec openclaw gateway --config "$CONFIG_DIR/openclaw.json"
