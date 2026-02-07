@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { RailwayClient } from '@/lib/railway/client'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -11,6 +12,38 @@ const CHANNELS = new Set(['telegram'])
 
 const PAIRING_SERVICE_URL = process.env.PAIRING_SERVICE_URL
 const PAIRING_SERVICE_API_KEY = process.env.PAIRING_SERVICE_API_KEY
+
+// Get gateway token from Railway service env vars
+async function getGatewayToken(serviceId: string): Promise<string | null> {
+  try {
+    const railway = new RailwayClient()
+    const query = `
+      query GetVariables($serviceId: String!, $environmentId: String!) {
+        variables(serviceId: $serviceId, environmentId: $environmentId) {
+          edges {
+            node {
+              name
+              value
+            }
+          }
+        }
+      }
+    `
+
+    const result: any = await (railway as any).graphql(query, {
+      serviceId,
+      environmentId: process.env.RAILWAY_ENVIRONMENT_ID
+    })
+
+    const variables = result?.variables?.edges || []
+    const gatewayTokenVar = variables.find((v: any) => v.node.name === 'OPENCLAW_GATEWAY_TOKEN')
+
+    return gatewayTokenVar?.node?.value || null
+  } catch (error) {
+    console.error('[Pairing] Failed to get gateway token:', error)
+    return null
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -51,6 +84,10 @@ export async function POST(req: Request) {
     // Try pairing microservice if configured
     if (PAIRING_SERVICE_URL && PAIRING_SERVICE_API_KEY) {
       try {
+        console.log('[Pairing] Getting gateway token from Railway...')
+        const gatewayToken = await getGatewayToken(serviceId)
+        console.log('[Pairing] Gateway token:', gatewayToken ? 'found' : 'not found')
+
         console.log('[Pairing] Calling pairing microservice...')
         const response = await fetch(`${PAIRING_SERVICE_URL}/pairing/approve`, {
           method: 'POST',
@@ -58,8 +95,13 @@ export async function POST(req: Request) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${PAIRING_SERVICE_API_KEY}`
           },
-          body: JSON.stringify({ serviceId, channel, code }),
-          signal: AbortSignal.timeout(25000)
+          body: JSON.stringify({
+            serviceId,
+            channel,
+            code,
+            gatewayToken
+          }),
+          signal: AbortSignal.timeout(30000)
         })
 
         const result = await response.json()
@@ -69,7 +111,7 @@ export async function POST(req: Request) {
           return NextResponse.json({
             success: true,
             message: result.message || 'Pairing approved successfully!',
-            output: result.output
+            output: result.output || result.result
           })
         }
 
