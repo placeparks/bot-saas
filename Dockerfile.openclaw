@@ -1,13 +1,14 @@
 # Wrapper Dockerfile that adds our custom entrypoint to OpenClaw
 FROM ghcr.io/openclaw/openclaw:latest
 
-# Copy entrypoint script
-COPY openclaw-entrypoint.sh /tmp/entrypoint.sh
+# Create minimal entrypoint using echo (guaranteed to work)
+RUN echo '#!/bin/sh' > /entrypoint.sh && \
+    echo 'set -e' >> /entrypoint.sh && \
+    echo 'echo "[ENTRYPOINT] Starting OpenClaw..."' >> /entrypoint.sh && \
+    echo 'mkdir -p /tmp/.openclaw' >> /entrypoint.sh && \
+    echo 'printf "%s" "$OPENCLAW_CONFIG" > /tmp/.openclaw/config.json' >> /entrypoint.sh && \
+    echo 'echo "[ENTRYPOINT] Config written, starting OpenClaw with bind=lan"' >> /entrypoint.sh && \
+    echo 'exec openclaw --config /tmp/.openclaw/config.json' >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
 
-# Fix line endings with tr (works on any system) and move to final location
-RUN tr -d '\r' < /tmp/entrypoint.sh > /usr/local/bin/openclaw-entrypoint.sh && \
-    chmod +x /usr/local/bin/openclaw-entrypoint.sh && \
-    rm /tmp/entrypoint.sh
-
-# Use our entrypoint
-ENTRYPOINT ["/usr/local/bin/openclaw-entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
