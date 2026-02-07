@@ -76,7 +76,7 @@ export function buildStartCommand(): string {
     `mkdir -p ${configDir}`,
     `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
     `echo "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
-    `(node /tmp/pairing-server.js &) 2>/dev/null || true`,
+    `(node /tmp/pairing-server.js > /tmp/pairing-server.log 2>&1 &)`,
     `exec ${openclawCmd} --config ${configDir}/openclaw.json`,
   ].join(' && ')
 }
@@ -188,7 +188,8 @@ export async function deployInstance(
     }
 
     // Do not force a redeploy or wait for it here; Railway will deploy in its own time.
-    const serviceUrl = `https://${serviceName}.railway.internal:18789`
+    // Railway private networking uses plain HTTP (no TLS)
+    const serviceUrl = `http://${serviceName}.railway.internal:18789`
 
     await prisma.instance.update({
       where: { id: instance.id },
