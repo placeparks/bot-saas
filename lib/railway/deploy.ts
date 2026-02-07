@@ -7,6 +7,7 @@ import {
   UserConfiguration,
 } from '@/lib/openclaw/config-builder'
 import { InstanceStatus } from '@prisma/client'
+import { randomUUID } from 'crypto'
 
 const OPENCLAW_IMAGE = process.env.OPENCLAW_IMAGE || 'ghcr.io/openclaw/openclaw:latest'
 
@@ -82,15 +83,16 @@ export function buildStartCommand(): string {
   return [
     `mkdir -p ${configDir}`,
     `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
+    // DEBUG: Print config file to verify gateway.bind and gateway.auth.token are set
+    `echo "[DEBUG] OpenClaw config:" && cat ${configDir}/openclaw.json | head -20`,
     // Decode and save pairing server
     `printf '%s' "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
     // Start pairing server in background (logs to stdout, will appear in Railway logs)
     `node /tmp/pairing-server.js &`,
     // Give it a moment to bind to port
     `sleep 1`,
-    // Start OpenClaw (config file specifies host: 0.0.0.0 for Railway internal networking)
-    // Pass --token explicitly to ensure gateway auth works
-    `exec ${openclawCmd} --token "$OPENCLAW_GATEWAY_TOKEN" --config ${configDir}/openclaw.json`,
+    // Start OpenClaw (config file includes bind: 'lan' and auth.token for Railway internal networking)
+    `exec ${openclawCmd} --config ${configDir}/openclaw.json`,
   ].join(' && ')
 }
 
@@ -159,11 +161,13 @@ export async function deployInstance(
   try {
   // --- Build env vars for the OpenClaw container ---
   const envVars = buildEnvironmentVariables(config)
-  const openclawConfig = generateOpenClawConfig(config)
+  // Gateway token required by OpenClaw (generate a random one per instance)
+  const gatewayToken = randomUUID()
+  envVars.OPENCLAW_GATEWAY_TOKEN = gatewayToken
+  // Generate config with the gateway token embedded
+  const openclawConfig = generateOpenClawConfig({ ...config, gatewayToken })
   // Serialized config; the start command writes it to the expected file path
   envVars.OPENCLAW_CONFIG = JSON.stringify(openclawConfig)
-  // Gateway token required by OpenClaw (generate a random one per instance)
-  envVars.OPENCLAW_GATEWAY_TOKEN = crypto.randomUUID()
   // Pairing server script — decoded + launched by the start command
   envVars._PAIRING_SCRIPT_B64 = PAIRING_SCRIPT_B64
   validateOpenClawEnv(config, envVars)
