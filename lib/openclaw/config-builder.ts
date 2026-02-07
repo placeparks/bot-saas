@@ -28,7 +28,7 @@ export interface UserConfiguration {
 export function generateOpenClawConfig(userConfig: UserConfiguration) {
   const config: any = {
     gateway: {
-      bind: 'lan',
+      bind: '0.0.0.0',
       port: 18789,
       auth: {
         mode: 'token',
