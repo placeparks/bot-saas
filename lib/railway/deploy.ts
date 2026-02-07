@@ -165,7 +165,7 @@ export async function deployInstance(
   const gatewayToken = randomUUID()
   envVars.OPENCLAW_GATEWAY_TOKEN = gatewayToken
   // Generate config with the gateway token embedded
-  const openclawConfig = generateOpenClawConfig({ ...config, gatewayToken })
+  const openclawConfig = generateOpenClawConfig({ ...config, gatewayToken } as UserConfiguration)
   // Serialized config; the start command writes it to the expected file path
   envVars.OPENCLAW_CONFIG = JSON.stringify(openclawConfig)
   // Pairing server script — decoded + launched by the start command
