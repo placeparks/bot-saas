@@ -62,7 +62,8 @@ const server = http.createServer((req, res) => {
   res.end();
 });
 
-server.listen(18800, '0.0.0.0');
+// Listen on both IPv4 and IPv6 (Railway internal networking uses IPv6)
+server.listen(18800);
 `.trim()
 
 /** Base64-encoded pairing server script for embedding in container env vars. */
