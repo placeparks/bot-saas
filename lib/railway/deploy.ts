@@ -194,12 +194,17 @@ export async function deployInstance(
         () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
         'updateServiceInstance'
       )
+      console.log('[Railway] Start command updated, triggering redeploy...')
+      // Trigger a fresh deployment to pick up the new start command
+      await retryRailwayCooldown(
+        () => railway.redeployService(serviceId),
+        'redeployService'
+      )
     } catch (error: any) {
       console.warn('[Railway] Failed to update start command:', error.message)
       console.warn('[Railway] Continuing with default command (may cause issues)')
     }
 
-    // Do not force a redeploy or wait for it here; Railway will deploy in its own time.
     // Railway private networking uses plain HTTP (no TLS)
     const serviceUrl = `http://${serviceName}.railway.internal:18789`
 
