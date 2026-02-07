@@ -9,32 +9,27 @@ export const dynamic = 'force-dynamic'
 const CODE_PATTERN = /^[A-Za-z0-9_-]{2,32}$/
 const CHANNELS = new Set(['telegram'])
 
+const PAIRING_SERVICE_URL = process.env.PAIRING_SERVICE_URL
+const PAIRING_SERVICE_API_KEY = process.env.PAIRING_SERVICE_API_KEY
+
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await req.json().catch(() => ({}))
     const channel = String(body?.channel || '').toLowerCase()
     const code = String(body?.code || '').trim()
+
     if (!CHANNELS.has(channel)) {
-      return NextResponse.json(
-        { error: 'Unsupported channel' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Unsupported channel' }, { status: 400 })
     }
 
     if (!CODE_PATTERN.test(code)) {
-      return NextResponse.json(
-        { error: 'Invalid pairing code' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid pairing code' }, { status: 400 })
     }
 
     const user = await prisma.user.findUnique({
@@ -43,72 +38,66 @@ export async function POST(req: Request) {
     })
 
     if (!user?.instance) {
-      return NextResponse.json(
-        { error: 'No instance found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'No instance found' }, { status: 404 })
     }
 
     if (!user.instance.containerId) {
-      return NextResponse.json(
-        { error: 'Instance has no Railway service ID' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Instance has no Railway service ID' }, { status: 400 })
     }
 
     const cliCommand = `openclaw pairing approve ${channel} ${code}`
+    const serviceId = user.instance.containerId
 
-    // --- Method 1: Try the pairing HTTP server on port 18800 ---
-    // Ensure http:// (Railway internal networking is plain TCP, no TLS)
-    const rawUrl = user.instance.serviceUrl || ''
-    const httpUrl = rawUrl.replace(/^https:\/\//, 'http://')
-    const pairingApiUrl = httpUrl
-      ? `${httpUrl.replace(':18789', ':18800')}/pairing/approve`
-      : null
-
-    console.log('[Pairing] serviceUrl from DB:', rawUrl)
-    console.log('[Pairing] calling pairing API at:', pairingApiUrl)
-
-    if (pairingApiUrl) {
+    // Try pairing microservice if configured
+    if (PAIRING_SERVICE_URL && PAIRING_SERVICE_API_KEY) {
       try {
-        const response = await fetch(pairingApiUrl, {
+        console.log('[Pairing] Calling pairing microservice...')
+        const response = await fetch(`${PAIRING_SERVICE_URL}/pairing/approve`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ channel, code }),
-          signal: AbortSignal.timeout(10000)
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${PAIRING_SERVICE_API_KEY}`
+          },
+          body: JSON.stringify({ serviceId, channel, code }),
+          signal: AbortSignal.timeout(25000)
         })
 
         const result = await response.json()
-        console.log('[Pairing] response status:', response.status, 'body:', JSON.stringify(result))
+        console.log('[Pairing] Microservice response:', result)
 
         if (response.ok && result.success) {
           return NextResponse.json({
             success: true,
-            message: result.message || 'Pairing approved successfully',
-            output: result.output,
-            cliCommand
+            message: result.message || 'Pairing approved successfully!',
+            output: result.output
           })
         }
+
+        // Microservice returned error - log and fall through to manual
+        console.log('[Pairing] Microservice failed:', result)
       } catch (error: any) {
-        console.log('[Pairing] HTTP to port 18800 failed:', error.message, error.cause || '')
+        console.error('[Pairing] Microservice error:', error.message)
+        // Fall through to manual instructions
       }
+    } else {
+      console.log('[Pairing] Microservice not configured, showing manual instructions')
     }
 
-    // --- Fallback: CLI instructions ---
+    // Fallback: Manual CLI instructions
     return NextResponse.json({
       success: true,
       cliCommand,
-      message: 'Automatic pairing failed - use manual approval',
+      message: 'Copy and run this command in Railway Terminal',
       instructions: [
         '1. Go to Railway Dashboard',
         '2. Open your OpenClaw service → Deployments',
         '3. Click active deployment → Terminal',
-        '4. Run the command shown above'
+        '4. Paste and run the command above'
       ]
     })
 
   } catch (error: any) {
-    console.error('Pairing approve error:', error)
+    console.error('Pairing error:', error)
     return NextResponse.json(
       { error: error.message || 'Pairing failed' },
       { status: 500 }
