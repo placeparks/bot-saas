@@ -1,2 +1,15 @@
-FROM ghcr.io/openclaw/openclaw:latest
-ENTRYPOINT ["sh", "-c", "mkdir -p /tmp/.openclaw && echo \"$OPENCLAW_CONFIG\" > /tmp/.openclaw/c.json && exec openclaw --config /tmp/.openclaw/c.json"]
+FROM debian:bookworm-slim
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends curl ca-certificates bash \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install OpenClaw CLI into /root/.openclaw/bin
+RUN curl -fsSL https://openclaw.ai/install.sh | bash
+
+ENV PATH="/root/.openclaw/bin:$PATH"
+
+COPY openclaw-entrypoint.sh /usr/local/bin/openclaw-entrypoint.sh
+RUN chmod +x /usr/local/bin/openclaw-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/openclaw-entrypoint.sh"]
