@@ -37,6 +37,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
     gateway: {
       bind: 'lan',
       port: 18789,
+      mode: 'local',
       auth: {
         mode: 'token',
         token: userConfig.gatewayToken
