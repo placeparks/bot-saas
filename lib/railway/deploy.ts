@@ -200,26 +200,6 @@ export async function deployInstance(
       console.warn('⚠️  Failed to persist containerId (will retry later):', err)
     }
 
-    // Override start command so env vars expand in a shell and the pairing server boots.
-    const startCmd = buildRailwayStartCommand()
-    try {
-      await retryRailwayCooldown(
-        () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
-        'updateServiceInstance'
-      )
-      console.log('[Railway] ✅ Start command set, triggering redeploy...')
-
-      // Trigger redeploy so the new start command takes effect
-      await retryRailwayCooldown(
-        () => railway.redeployService(serviceId),
-        'redeployService'
-      )
-      console.log('[Railway] ✅ Redeploy triggered with new start command')
-    } catch (error: any) {
-      console.warn('[Railway] Failed to update start command:', error.message)
-      console.warn('[Railway] Pairing server will need to be injected on first use')
-    }
-
     console.log('[Railway] ✅ Service created with custom OpenClaw wrapper image')
 
     // Railway private networking uses plain HTTP (no TLS)
