@@ -80,20 +80,18 @@ export const PAIRING_SCRIPT_B64 = Buffer.from(PAIRING_SERVER_JS).toString('base6
 export function buildStartCommand(): string {
   const openclawCmd = process.env.OPENCLAW_CMD || 'openclaw'
   const configDir = '/tmp/.openclaw'
-  return [
+
+  // Build command with proper shell syntax for background process
+  const setupCommands = [
     `mkdir -p ${configDir}`,
     `printf '%s' "$OPENCLAW_CONFIG" > ${configDir}/openclaw.json`,
-    // DEBUG: Print config file to verify gateway.bind and gateway.auth.token are set
-    `echo "[DEBUG] OpenClaw config:" && cat ${configDir}/openclaw.json | head -20`,
-    // Decode and save pairing server
+    `echo "[DEBUG] OpenClaw config:"`,
+    `cat ${configDir}/openclaw.json | head -20`,
     `printf '%s' "$_PAIRING_SCRIPT_B64" | base64 -d > /tmp/pairing-server.js`,
-    // Start pairing server in background (logs to stdout, will appear in Railway logs)
-    `node /tmp/pairing-server.js &`,
-    // Give it a moment to bind to port
-    `sleep 1`,
-    // Start OpenClaw (config file includes bind: 'lan' and auth.token for Railway internal networking)
-    `exec ${openclawCmd} --config ${configDir}/openclaw.json`,
   ].join(' && ')
+
+  // Background process and final command must use semicolons, not &&
+  return `${setupCommands} && node /tmp/pairing-server.js & sleep 1 && exec ${openclawCmd} --config ${configDir}/openclaw.json`
 }
 
 const POLL_INTERVAL_MS = 3000
