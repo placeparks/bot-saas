@@ -89,7 +89,8 @@ export function buildStartCommand(): string {
     // Give it a moment to bind to port
     `sleep 1`,
     // Start OpenClaw with --bind lan to listen on all network interfaces (required for Railway internal networking)
-    `exec ${openclawCmd} --bind lan --config ${configDir}/openclaw.json`,
+    // Pass --token explicitly to ensure gateway auth works
+    `exec ${openclawCmd} --bind lan --token "$OPENCLAW_GATEWAY_TOKEN" --config ${configDir}/openclaw.json`,
   ].join(' && ')
 }
 
