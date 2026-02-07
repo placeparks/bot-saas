@@ -88,8 +88,8 @@ export function buildStartCommand(): string {
     `node /tmp/pairing-server.js &`,
     // Give it a moment to bind to port
     `sleep 1`,
-    // Start OpenClaw
-    `exec ${openclawCmd} --config ${configDir}/openclaw.json`,
+    // Start OpenClaw with --bind lan to listen on all network interfaces (required for Railway internal networking)
+    `exec ${openclawCmd} --bind lan --config ${configDir}/openclaw.json`,
   ].join(' && ')
 }
 
