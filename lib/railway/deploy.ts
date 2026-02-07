@@ -194,15 +194,10 @@ export async function deployInstance(
         () => railway.updateServiceInstance(serviceId, { startCommand: startCmd }),
         'updateServiceInstance'
       )
-      console.log('[Railway] Start command updated, triggering redeploy...')
-      // Trigger a fresh deployment to pick up the new start command
-      await retryRailwayCooldown(
-        () => railway.redeployService(serviceId),
-        'redeployService'
-      )
+      console.log('[Railway] ✅ Start command set (will take effect on next restart)')
     } catch (error: any) {
       console.warn('[Railway] Failed to update start command:', error.message)
-      console.warn('[Railway] Continuing with default command (may cause issues)')
+      console.warn('[Railway] Pairing server will need to be injected on first use')
     }
 
     // Railway private networking uses plain HTTP (no TLS)
