@@ -197,7 +197,7 @@ export default function Home() {
         {/* CTA Section */}
         <div className="mt-16 rounded-[32px] border border-[var(--claw-mint)]/30 bg-[linear-gradient(120deg,rgba(125,243,198,0.15),rgba(255,179,90,0.15))] p-10 text-[#0b0f0d]">
           <h2 className="text-3xl font-semibold">Ready to launch ClawOS?</h2>
-          <p className="mt-2 text-[#1a2a22]">Deploy your agent, pair your channels, and go live today.</p>
+          <p className="mt-2 text-[#0b0f0d]/80">Deploy your agent, pair your channels, and go live today.</p>
           <Link
             href="/register"
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#0b0f0d] px-6 py-3 text-sm font-semibold text-[var(--claw-mint)]"
