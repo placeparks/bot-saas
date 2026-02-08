@@ -25,6 +25,15 @@ function send(res, code, data) {
   res.end(payload);
 }
 
+function extractQr(raw) {
+  if (!raw) return null;
+  const jsonMatch = raw.match(/"qr"\\s*:\\s*"([^"]+)"/i);
+  if (jsonMatch && jsonMatch[1]) return jsonMatch[1];
+  const lineMatch = raw.match(/\\bqr\\s*[:=]\\s*([A-Za-z0-9+/=_:-]+)/i);
+  if (lineMatch && lineMatch[1]) return lineMatch[1];
+  return null;
+}
+
 function readBody(req, cb) {
   let buf = '';
   req.on('data', (c) => { buf += c; });
@@ -62,6 +71,22 @@ const server = http.createServer((req, res) => {
         output: r.stdout || '',
         message: ok ? 'Pairing approved successfully' : (r.stderr || 'Pairing failed')
       });
+    });
+  }
+
+  if (req.method === 'POST' && req.url === '/whatsapp/qr') {
+    // Start WhatsApp login flow and return QR data if present.
+    const r = spawnSync('openclaw', ['channels', 'login', 'whatsapp'], {
+      encoding: 'utf8',
+      timeout: 20000
+    });
+    const raw = [r.stdout || '', r.stderr || ''].join('\\n').trim();
+    const qr = extractQr(raw);
+    const ok = Boolean(qr) || r.status === 0;
+    return send(res, ok ? 200 : 500, {
+      success: ok,
+      qr,
+      raw
     });
   }
 
