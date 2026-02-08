@@ -129,12 +129,10 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
         }
 
         if (result?.instructions) {
-          // All methods failed - show CLI fallback
           setCliCommand(result.cliCommand)
           setShowCliCommand(true)
           setPairingSuccess(result?.message || 'Use the command below to approve')
         } else {
-          // Pairing succeeded!
           setShowCliCommand(false)
           setPairingSuccess(result?.message || 'Pairing approved successfully!')
         }
@@ -157,34 +155,34 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
 
   if (!channels || channels.length === 0) {
     return (
-      <Card>
+      <Card className="border border-white/10 bg-white/5 text-[#e9f3ee]">
         <CardHeader>
           <CardTitle>Channel Access</CardTitle>
-          <CardDescription>No channels configured</CardDescription>
+          <CardDescription className="text-[#a5b7b0]">No channels configured</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-[#a5b7b0]">
               Configure channels in your instance settings to start chatting with your bot.
             </p>
-            <div className="rounded-lg border p-3 space-y-3">
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
               <p className="text-sm font-medium">Pair Telegram</p>
               <input
-                className="w-full border rounded-md px-3 py-2 text-sm"
+                className="w-full border border-white/10 rounded-md bg-white/5 px-3 py-2 text-sm text-[#e9f3ee] placeholder:text-[#6e827a]"
                 placeholder="Enter pairing code"
                 value={pairingCode}
                 onChange={(e) => setPairingCode(e.target.value)}
               />
               {pairingError && (
-                <p className="text-sm text-red-600">{pairingError}</p>
+                <p className="text-sm text-red-400">{pairingError}</p>
               )}
               {pairingSuccess && (
-                <p className="text-sm text-green-600">{pairingSuccess}</p>
+                <p className="text-sm text-[var(--claw-mint)]">{pairingSuccess}</p>
               )}
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                   onClick={() => copyToClipboard(pairingCode ? `/pair ${pairingCode}` : '/pair')}
                 >
                   <Copy className="h-4 w-4 mr-2" />
@@ -192,7 +190,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                   onClick={approvePairing}
                   disabled={!pairingCode || pairingLoading}
                 >
@@ -200,7 +198,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#8fa29a]">
               Pairing works without channel config, but Telegram deep links need a bot username.
             </p>
           </div>
@@ -210,10 +208,10 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
   }
 
   return (
-    <Card>
+    <Card className="border border-white/10 bg-white/5 text-[#e9f3ee]">
       <CardHeader>
         <CardTitle>Channel Access</CardTitle>
-        <CardDescription>Connect to your bot on these platforms</CardDescription>
+        <CardDescription className="text-[#a5b7b0]">Connect to your bot on these platforms</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -224,23 +222,23 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
             return (
               <div
                 key={index}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
+                className="flex items-center justify-between p-4 border border-white/10 rounded-lg bg-white/5 hover:border-[var(--claw-mint)]/30 transition"
               >
                 <div className="flex items-center space-x-4 flex-1">
-                  <div className="p-3 rounded-lg bg-purple-100">
-                    <Icon className="h-5 w-5 text-purple-600" />
+                  <div className="p-3 rounded-lg border border-white/10 bg-white/5">
+                    <Icon className="h-5 w-5 text-[var(--claw-mint)]" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
                       <p className="font-semibold">
                         {channel.type.replace('_', ' ')}
                       </p>
-                      <Badge variant={channel.enabled ? 'default' : 'secondary'} className="text-xs">
+                      <Badge className={channel.enabled ? 'bg-[var(--claw-mint)] text-[#0b0f0d]' : 'bg-white/10 text-[#cfe3db]'}>
                         {channel.enabled ? 'Active' : 'Inactive'}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">{accessInfo.label}:</span>{' '}
+                    <p className="text-sm text-[#a5b7b0]">
+                      <span className="font-medium text-[#cfe3db]">{accessInfo.label}:</span>{' '}
                       {accessInfo.value}
                     </p>
                   </div>
@@ -251,6 +249,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                       onClick={() => setShowingQR(channel.type)}
                     >
                       <QrCode className="h-4 w-4 mr-2" />
@@ -261,6 +260,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                       asChild
                     >
                       <a href={accessInfo.link} target="_blank" rel="noopener noreferrer">
@@ -274,6 +274,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       <Button
                         variant="outline"
                         size="sm"
+                        className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                         onClick={loadPendingRequests}
                         disabled={loadingRequests}
                       >
@@ -282,6 +283,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       <Button
                         variant="outline"
                         size="sm"
+                        className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                         onClick={() => {
                           setPairingChannel(channel.type)
                           setPairingCode('')
@@ -297,6 +299,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                       onClick={() => copyToClipboard(accessInfo.value)}
                     >
                       <Copy className="h-4 w-4" />
@@ -309,16 +312,16 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
         </div>
 
         {showingQR && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="max-w-md">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <Card className="max-w-md border border-white/10 bg-[#0b0f0d] text-[#e9f3ee]">
               <CardHeader>
                 <CardTitle>WhatsApp QR Code</CardTitle>
-                <CardDescription>Scan with WhatsApp to connect</CardDescription>
+                <CardDescription className="text-[#a5b7b0]">Scan with WhatsApp to connect</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="bg-white p-8 rounded-lg">
-                  <div className="w-64 h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <p className="text-gray-500 text-center">
+                <div className="bg-white/5 p-8 rounded-lg">
+                  <div className="w-64 h-64 bg-white/5 rounded-lg flex items-center justify-center">
+                    <p className="text-[#8fa29a] text-center">
                       QR Code will be generated
                       <br />
                       when instance is running
@@ -326,7 +329,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                   </div>
                 </div>
                 <Button
-                  className="w-full mt-4"
+                  className="w-full mt-4 bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
                   onClick={() => setShowingQR(null)}
                 >
                   Close
@@ -337,17 +340,17 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
         )}
 
         {showPendingRequests && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="max-w-2xl w-full mx-4">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <Card className="max-w-2xl w-full mx-4 border border-white/10 bg-[#0b0f0d] text-[#e9f3ee]">
               <CardHeader>
                 <CardTitle>Pending Pairing Requests</CardTitle>
-                <CardDescription>
+                <CardDescription className="text-[#a5b7b0]">
                   Approve users who have messaged your bot
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {pendingRequests.length === 0 ? (
-                  <p className="text-sm text-gray-600 text-center py-4">
+                  <p className="text-sm text-[#8fa29a] text-center py-4">
                     No pending pairing requests
                   </p>
                 ) : (
@@ -355,30 +358,31 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     {pendingRequests.map((req, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center justify-between p-3 border rounded-lg"
+                        className="flex items-center justify-between p-3 border border-white/10 rounded-lg bg-white/5"
                       >
                         <div className="flex-1">
                           <p className="text-sm font-medium">
                             Code: <span className="font-mono">{req.code}</span>
                           </p>
                           {req.userId && (
-                            <p className="text-xs text-gray-600">
+                            <p className="text-xs text-[#8fa29a]">
                               User ID: {req.userId}
                             </p>
                           )}
                           {req.expires && (
-                            <p className="text-xs text-gray-600">
+                            <p className="text-xs text-[#8fa29a]">
                               Expires: {new Date(req.expires).toLocaleString()}
                             </p>
                           )}
                           {req.raw && !req.code && (
-                            <p className="text-xs text-gray-600 font-mono">
+                            <p className="text-xs text-[#8fa29a] font-mono">
                               {req.raw}
                             </p>
                           )}
                         </div>
                         <Button
                           size="sm"
+                          className="bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
                           onClick={() => {
                             setPairingCode(req.code || '')
                             setPairingChannel('TELEGRAM')
@@ -393,12 +397,12 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                   </div>
                 )}
                 {pairingError && (
-                  <p className="text-sm text-red-600">{pairingError}</p>
+                  <p className="text-sm text-red-400">{pairingError}</p>
                 )}
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                     onClick={loadPendingRequests}
                     disabled={loadingRequests}
                   >
@@ -406,7 +410,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                     onClick={() => setShowPendingRequests(false)}
                   >
                     Close
@@ -418,41 +422,42 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
         )}
 
         {pairingChannel && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="max-w-md">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <Card className="max-w-md border border-white/10 bg-[#0b0f0d] text-[#e9f3ee]">
               <CardHeader>
                 <CardTitle>Pair Telegram</CardTitle>
-                <CardDescription>
+                <CardDescription className="text-[#a5b7b0]">
                   Enter the pairing code you received, then open Telegram to connect.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-[#a5b7b0] mb-2">
                     If you do not have access to the bot, share this code with the bot owner.
                   </p>
                   <input
-                    className="w-full border rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-white/10 rounded-md bg-white/5 px-3 py-2 text-sm text-[#e9f3ee] placeholder:text-[#6e827a]"
                     placeholder="Enter pairing code"
                     value={pairingCode}
                     onChange={(e) => setPairingCode(e.target.value)}
                   />
                 </div>
                 {showCliCommand && cliCommand && (
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-3">
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-3">
                     <div className="flex items-center gap-2">
-                      <Terminal className="h-5 w-5 text-blue-600" />
-                      <p className="text-sm font-medium text-blue-900">
+                      <Terminal className="h-5 w-5 text-[var(--claw-mint)]" />
+                      <p className="text-sm font-medium">
                         Run this command in Railway Terminal
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 text-sm bg-white px-3 py-2 rounded border font-mono">
+                      <code className="flex-1 text-sm bg-black/30 px-3 py-2 rounded border border-white/10 font-mono">
                         {cliCommand}
                       </code>
                       <Button
                         variant="outline"
                         size="sm"
+                        className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                         onClick={() => {
                           copyToClipboard(cliCommand)
                         }}
@@ -460,25 +465,25 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
-                    <div className="text-xs text-blue-700 space-y-1">
+                    <div className="text-xs text-[#a5b7b0] space-y-1">
                       <p className="font-medium">Steps:</p>
                       <ol className="list-decimal list-inside space-y-1">
                         <li>Open Railway Dashboard</li>
-                        <li>Go to your OpenClaw service → Deployments</li>
-                        <li>Click active deployment → Terminal</li>
+                        <li>Go to your OpenClaw service - Deployments</li>
+                        <li>Click active deployment - Terminal</li>
                         <li>Paste and run the command above</li>
                       </ol>
                     </div>
                   </div>
                 )}
                 {pairingError && (
-                  <p className="text-sm text-red-600">{pairingError}</p>
+                  <p className="text-sm text-red-400">{pairingError}</p>
                 )}
                 {pairingSuccess && (
-                  <p className="text-sm text-green-600">{pairingSuccess}</p>
+                  <p className="text-sm text-[var(--claw-mint)]">{pairingSuccess}</p>
                 )}
                 <Button
-                  className="w-full"
+                  className="w-full bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
                   onClick={approvePairing}
                   disabled={!pairingCode || pairingLoading}
                 >
@@ -486,7 +491,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                   {pairingLoading ? 'Pairing...' : showCliCommand ? 'Retry Pairing' : 'Pair Now'}
                 </Button>
                 <Button
-                  className="w-full"
+                  className="w-full bg-white/10 text-[#e9f3ee] hover:bg-white/15"
                   asChild
                   disabled={!pairingCode || !telegramUsername}
                 >
@@ -501,7 +506,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                   onClick={() => {
                     setPairingChannel(null)
                     setShowCliCommand(false)
