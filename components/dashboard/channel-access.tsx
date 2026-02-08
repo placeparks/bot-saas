@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { MessageSquare, Send, Hash, Zap, Phone, Mail, Grid, Users, Copy, ExternalLink, QrCode, Terminal } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import QRCode from 'qrcode'
 
 const channelIcons: Record<string, any> = {
   WHATSAPP: MessageSquare,
@@ -41,6 +42,11 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
   const [showCliCommand, setShowCliCommand] = useState(false)
   const [cliCommand, setCliCommand] = useState('')
   const [apiOutput, setApiOutput] = useState('')
+  const [qrLoading, setQrLoading] = useState(false)
+  const [qrError, setQrError] = useState<string | null>(null)
+  const [qrData, setQrData] = useState<string | null>(null)
+  const [qrImage, setQrImage] = useState<string | null>(null)
+  const [qrRaw, setQrRaw] = useState<string | null>(null)
   const telegramChannel = channels?.find((c) => c.type === 'TELEGRAM')
   const telegramUsername = telegramChannel?.botUsername?.replace('@', '')
   const telegramPairLink =
@@ -153,6 +159,57 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
     doApprovePairing()
   }
 
+  const openQr = async (channelType: string) => {
+    setShowingQR(channelType)
+    setQrLoading(true)
+    setQrError(null)
+    setQrData(null)
+    setQrImage(null)
+    setQrRaw(null)
+
+    if (channelType !== 'WHATSAPP') {
+      setQrLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch('/api/instance/whatsapp/qr', { method: 'POST' })
+      const result = await response.json()
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.error || 'Failed to generate QR')
+      }
+
+      if (result?.qr) {
+        setQrData(result.qr)
+      } else {
+        setQrRaw(result?.raw || '')
+        throw new Error('QR data not returned. Check instance logs.')
+      }
+    } catch (error: any) {
+      setQrError(error.message || 'Failed to generate QR')
+    } finally {
+      setQrLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    if (!qrData) return
+
+    QRCode.toDataURL(qrData, { margin: 1, width: 256 })
+      .then((url) => {
+        if (!cancelled) setQrImage(url)
+      })
+      .catch(() => {
+        if (!cancelled) setQrError('Failed to render QR')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [qrData])
+
   if (!channels || channels.length === 0) {
     return (
       <Card className="border border-white/10 bg-white/5 text-[#e9f3ee]">
@@ -250,7 +307,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       variant="outline"
                       size="sm"
                       className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
-                      onClick={() => setShowingQR(channel.type)}
+                      onClick={() => openQr(channel.type)}
                     >
                       <QrCode className="h-4 w-4 mr-2" />
                       View QR
@@ -321,12 +378,30 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
               <CardContent>
                 <div className="bg-white/5 p-8 rounded-lg">
                   <div className="w-64 h-64 bg-white/5 rounded-lg flex items-center justify-center">
-                    <p className="text-[#8fa29a] text-center">
-                      QR Code will be generated
-                      <br />
-                      when instance is running
-                    </p>
+                    {qrLoading && (
+                      <p className="text-[#8fa29a] text-center">Generating QR...</p>
+                    )}
+                    {!qrLoading && qrImage && (
+                      <img src={qrImage} alt="WhatsApp QR Code" className="w-56 h-56" />
+                    )}
+                    {!qrLoading && !qrImage && (
+                      <p className="text-[#8fa29a] text-center">
+                        QR Code not available yet.
+                        <br />
+                        Try again in a few seconds.
+                      </p>
+                    )}
                   </div>
+                  {qrError && (
+                    <p className="mt-3 text-xs text-red-400 text-center">
+                      {qrError}
+                    </p>
+                  )}
+                  {qrRaw && !qrImage && (
+                    <pre className="mt-3 max-h-32 overflow-auto text-xs text-[#8fa29a] bg-black/30 p-2 rounded border border-white/10">
+                      {qrRaw}
+                    </pre>
+                  )}
                 </div>
                 <Button
                   className="w-full mt-4 bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
