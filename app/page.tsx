@@ -3,17 +3,10 @@ import { ArrowRight, Bot, MessageSquare, Zap, Shield, Check, Sparkles, Layers, R
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#0b0f0d] text-[#e9f3ee]" style={{ fontFamily: "'Space Grotesk', 'Sora', 'Poppins', sans-serif" }}>
-      <style jsx global>{`
-        :root {
-          --claw-ink: #0b0f0d;
-          --claw-mint: #7df3c6;
-          --claw-teal: #1fb6a6;
-          --claw-sand: #f2e9d8;
-          --claw-glow: rgba(125, 243, 198, 0.28);
-          --claw-ember: #ffb35a;
-        }
-      `}</style>
+    <div
+      className="min-h-screen bg-[#0b0f0d] text-[#e9f3ee] [--claw-ink:#0b0f0d] [--claw-mint:#7df3c6] [--claw-teal:#1fb6a6] [--claw-sand:#f2e9d8] [--claw-glow:rgba(125,243,198,0.28)] [--claw-ember:#ffb35a]"
+      style={{ fontFamily: "'Space Grotesk', 'Sora', 'Poppins', sans-serif" }}
+    >
       {/* Header */}
       <header className="container mx-auto px-6 pt-8">
         <nav className="flex items-center justify-between">
