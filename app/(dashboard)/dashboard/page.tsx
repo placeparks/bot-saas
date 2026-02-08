@@ -141,14 +141,14 @@ export default function DashboardPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card className="border border-white/10 bg-white/5">
+            <Card className="border border-white/10 bg-white/5 text-[#e9f3ee]">
               <CardHeader>
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
                   variant="outline"
-                  className="w-full justify-start border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                  className="w-full justify-start border-white/15 bg-white/5 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60 hover:bg-white/10 disabled:opacity-50 disabled:text-[#8fa29a]"
                   onClick={() => handleAction('start')}
                   disabled={instance.status === 'RUNNING' || actionLoading}
                 >
@@ -157,7 +157,7 @@ export default function DashboardPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full justify-start border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                  className="w-full justify-start border-white/15 bg-white/5 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60 hover:bg-white/10 disabled:opacity-50 disabled:text-[#8fa29a]"
                   onClick={() => handleAction('stop')}
                   disabled={instance.status === 'STOPPED' || actionLoading}
                 >
@@ -166,7 +166,7 @@ export default function DashboardPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full justify-start border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                  className="w-full justify-start border-white/15 bg-white/5 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60 hover:bg-white/10 disabled:opacity-50 disabled:text-[#8fa29a]"
                   onClick={() => handleAction('restart')}
                   disabled={actionLoading}
                 >
@@ -176,7 +176,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="border border-white/10 bg-white/5">
+            <Card className="border border-white/10 bg-white/5 text-[#e9f3ee]">
               <CardHeader>
                 <CardTitle className="text-lg">Subscription</CardTitle>
               </CardHeader>
@@ -194,7 +194,7 @@ export default function DashboardPage() {
                   </div>
                   <Button
                     variant="outline"
-                    className="w-full mt-4 border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)]"
+                    className="w-full mt-4 border-[var(--claw-mint)]/40 bg-white/5 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)] hover:bg-white/10"
                   >
                     Manage Subscription
                   </Button>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="border border-white/10 bg-white/5">
+            <Card className="border border-white/10 bg-white/5 text-[#e9f3ee]">
               <CardHeader>
                 <CardTitle className="text-lg">Help & Support</CardTitle>
               </CardHeader>
