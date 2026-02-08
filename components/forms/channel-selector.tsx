@@ -207,7 +207,7 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
                         className="text-xs text-[var(--claw-mint)] hover:underline mt-1 inline-block"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Setup guide ->
+                        Setup guide&nbsp;&rarr;
                       </a>
                     )}
                   </div>
