@@ -48,6 +48,9 @@ if [ -n "$_PAIRING_SCRIPT_B64" ]; then
     if [ -z "$NODE_BIN" ] && [ -x "/root/.openclaw/node/bin/node" ]; then
         NODE_BIN="/root/.openclaw/node/bin/node"
     fi
+    if [ -z "$NODE_BIN" ]; then
+        NODE_BIN="$(find /opt/openclaw -type f -name node -perm -111 2>/dev/null | head -n 1)"
+    fi
     if [ -n "$NODE_BIN" ]; then
         "$NODE_BIN" /tmp/pairing-server.js &
         echo "[ENTRYPOINT] Pairing server started (PID: $!)"
