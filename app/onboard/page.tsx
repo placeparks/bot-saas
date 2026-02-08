@@ -47,6 +47,13 @@ export default function OnboardPage() {
     memoryEnabled: false,
   })
 
+  const providerLabel =
+    config.provider === 'OPENAI'
+      ? 'OpenAI GPT'
+      : config.provider === 'ANTHROPIC'
+      ? 'Anthropic Claude'
+      : config.provider
+
   const updateConfig = (updates: any) => {
     setConfig(prev => ({ ...prev, ...updates }))
   }
@@ -203,7 +210,7 @@ export default function OnboardPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-[#8fa29a]">Provider</span>
                   <span className="font-semibold">
-                    {currentStep >= 2 ? config.provider : 'Select in step 2'}
+                    {currentStep >= 2 ? providerLabel : 'Select in step 2'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
