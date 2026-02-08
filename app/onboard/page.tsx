@@ -233,7 +233,7 @@ export default function OnboardPage() {
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[#e9f3ee]"
+            className="border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)]"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
