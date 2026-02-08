@@ -49,16 +49,16 @@ export default function PlanSelection({ selectedPlan, onSelect }: PlanSelectionP
       {plans.map(plan => (
         <Card
           key={plan.id}
-          className={`relative cursor-pointer transition-all ${
+          className={`relative cursor-pointer border border-white/10 bg-white/5 transition-all ${
             selectedPlan === plan.id
-              ? 'ring-2 ring-purple-600 shadow-lg'
-              : 'hover:shadow-md'
-          } ${plan.popular ? 'border-purple-600' : ''}`}
+              ? 'ring-2 ring-[var(--claw-mint)] shadow-[0_20px_60px_rgba(0,0,0,0.35)]'
+              : 'hover:border-[var(--claw-mint)]/30'
+          } ${plan.popular ? 'border-[var(--claw-mint)]/40' : ''}`}
           onClick={() => onSelect(plan.id)}
         >
           {plan.badge && (
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <Badge className="bg-purple-600">{plan.badge}</Badge>
+              <Badge className="bg-[var(--claw-mint)] text-[#0b0f0d]">{plan.badge}</Badge>
             </div>
           )}
 
@@ -66,27 +66,27 @@ export default function PlanSelection({ selectedPlan, onSelect }: PlanSelectionP
             <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
             <div className="mb-4">
               <span className="text-4xl font-bold">${plan.price}</span>
-              <span className="text-gray-600">{plan.period}</span>
+              <span className="text-[#a5b7b0]">{plan.period}</span>
               {plan.pricePerMonth && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-[#8fa29a] mt-1">
                   ${plan.pricePerMonth}/month
                 </p>
               )}
             </div>
-            <p className="text-gray-600 text-sm mb-6">{plan.description}</p>
+            <p className="text-[#c7d6cf] text-sm mb-6">{plan.description}</p>
 
             <ul className="space-y-3">
               {plan.features.map((feature, index) => (
                 <li key={index} className="flex items-start">
-                  <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-[var(--claw-mint)] mr-2 flex-shrink-0" />
                   <span className="text-sm">{feature}</span>
                 </li>
               ))}
             </ul>
 
             {selectedPlan === plan.id && (
-              <div className="mt-6 p-3 bg-purple-50 rounded-lg text-center">
-                <span className="text-purple-600 font-semibold">✓ Selected</span>
+              <div className="mt-6 p-3 bg-[var(--claw-mint)]/10 rounded-lg text-center">
+                <span className="text-[var(--claw-mint)] font-semibold">Selected</span>
               </div>
             )}
           </div>
