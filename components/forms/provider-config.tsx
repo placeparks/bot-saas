@@ -106,7 +106,7 @@ export default function ProviderConfig({ config, onChange }: ProviderConfigProps
               const provider = providers.find(p => p.id === config.provider)
               if (provider) window.open(provider.getKeyUrl, '_blank')
             }}
-            className="border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[#e9f3ee]"
+            className="border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)]"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Get Key
