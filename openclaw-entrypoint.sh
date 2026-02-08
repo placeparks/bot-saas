@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Ensure OpenClaw + bundled Node are on PATH
+export PATH="/opt/openclaw/node/bin:/opt/openclaw/bin:$PATH"
+
 echo "[ENTRYPOINT] Starting OpenClaw wrapper..."
 
 CONFIG_DIR="${OPENCLAW_CONFIG_DIR:-$HOME/.openclaw}"
@@ -35,6 +38,15 @@ if [ -n "$_PAIRING_SCRIPT_B64" ]; then
     NODE_BIN="$(command -v node 2>/dev/null || true)"
     if [ -z "$NODE_BIN" ] && [ -x "/opt/openclaw/node/bin/node" ]; then
         NODE_BIN="/opt/openclaw/node/bin/node"
+    fi
+    if [ -z "$NODE_BIN" ] && [ -x "/opt/openclaw/nodejs/bin/node" ]; then
+        NODE_BIN="/opt/openclaw/nodejs/bin/node"
+    fi
+    if [ -z "$NODE_BIN" ] && [ -x "/opt/openclaw/bin/node" ]; then
+        NODE_BIN="/opt/openclaw/bin/node"
+    fi
+    if [ -z "$NODE_BIN" ] && [ -x "/root/.openclaw/node/bin/node" ]; then
+        NODE_BIN="/root/.openclaw/node/bin/node"
     fi
     if [ -n "$NODE_BIN" ]; then
         "$NODE_BIN" /tmp/pairing-server.js &
