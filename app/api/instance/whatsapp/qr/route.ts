@@ -23,15 +23,38 @@ export async function POST() {
       return NextResponse.json({ error: 'No instance found' }, { status: 404 })
     }
 
-    if (!user.instance.containerName) {
-      return NextResponse.json({ error: 'Instance has no service name' }, { status: 400 })
+    const serviceName = user.instance.containerName
+    const serviceUrl = user.instance.serviceUrl
+
+    let host = ''
+    if (serviceName) {
+      host = `${serviceName}.railway.internal`
+    } else if (serviceUrl) {
+      try {
+        const parsed = new URL(serviceUrl)
+        host = parsed.hostname
+      } catch {
+        host = ''
+      }
     }
 
-    const url = `http://${user.instance.containerName}.railway.internal:18800/whatsapp/qr`
-    const response = await fetch(url, {
-      method: 'POST',
-      signal: AbortSignal.timeout(25000)
-    })
+    if (!host) {
+      return NextResponse.json({ error: 'Instance has no service host' }, { status: 400 })
+    }
+
+    const url = `http://${host}:18800/whatsapp/qr`
+    let response: Response
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        signal: AbortSignal.timeout(25000)
+      })
+    } catch (error: any) {
+      return NextResponse.json(
+        { error: error.message || 'Failed to reach instance', url },
+        { status: 502 }
+      )
+    }
 
     const text = await response.text()
     let result: any
