@@ -67,8 +67,8 @@ export default function SkillsConfig({ config, onChange }: SkillsConfigProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-2">Enable Skills (Optional)</h3>
-        <p className="text-sm text-gray-600 mb-4">
+        <h3 className="text-lg font-semibold mb-2 text-[#e9f3ee]">Enable Skills (Optional)</h3>
+        <p className="text-sm text-[#a5b7b0] mb-4">
           Add extra capabilities to your AI assistant. You can skip this step and enable them later.
         </p>
       </div>
@@ -80,30 +80,31 @@ export default function SkillsConfig({ config, onChange }: SkillsConfigProps) {
 
           return (
             <div key={skill.key}>
-              <Card className="p-4">
+              <Card className="p-4 border border-white/10 bg-white/5">
                 <div className="flex items-start space-x-3">
                   <Checkbox
                     checked={isEnabled}
                     onCheckedChange={(checked) => onChange({ [skill.key]: checked })}
+                    className="border-white/30 data-[state=checked]:bg-[var(--claw-mint)] data-[state=checked]:text-[#0b0f0d]"
                   />
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <Icon className="h-5 w-5 text-purple-600" />
-                      <span className="font-semibold">{skill.name}</span>
+                      <Icon className="h-5 w-5 text-[var(--claw-mint)]" />
+                      <span className="font-semibold text-[#e9f3ee]">{skill.name}</span>
                       {skill.badge && (
-                        <Badge variant="secondary" className="text-xs">{skill.badge}</Badge>
+                        <Badge className="text-xs bg-white/10 text-[#cfe3db]">{skill.badge}</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">{skill.description}</p>
+                    <p className="text-sm text-[#a5b7b0]">{skill.description}</p>
                   </div>
                 </div>
 
                 {/* API Key Field */}
                 {isEnabled && skill.apiKeyField && (
                   <div className="mt-4 pl-7">
-                    <Label htmlFor={skill.apiKeyField} className="text-sm mb-2 block">
+                    <Label htmlFor={skill.apiKeyField} className="text-sm mb-2 block text-[#cfe3db]">
                       {skill.apiKeyLabel}
-                      <span className="text-red-500 ml-1">*</span>
+                      <span className="text-red-400 ml-1">*</span>
                     </Label>
                     <div className="flex gap-2">
                       <Input
@@ -112,12 +113,13 @@ export default function SkillsConfig({ config, onChange }: SkillsConfigProps) {
                         placeholder={skill.apiKeyPlaceholder}
                         value={config[skill.apiKeyField] || ''}
                         onChange={(e) => onChange({ [skill.apiKeyField]: e.target.value })}
+                        className="border-white/10 bg-white/5 text-[#e9f3ee] placeholder:text-[#6e827a]"
                       />
                       {skill.getKeyUrl && (
                         <button
                           type="button"
                           onClick={() => window.open(skill.getKeyUrl, '_blank')}
-                          className="px-4 py-2 border rounded-md hover:bg-gray-50 flex items-center space-x-2"
+                          className="px-4 py-2 border border-[var(--claw-mint)]/40 rounded-md text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[#e9f3ee] flex items-center space-x-2"
                         >
                           <ExternalLink className="h-4 w-4" />
                           <span className="text-sm">Get Key</span>
@@ -132,9 +134,9 @@ export default function SkillsConfig({ config, onChange }: SkillsConfigProps) {
         })}
       </div>
 
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-900">
-          <strong>Note:</strong> Skills can be enabled or disabled at any time from your dashboard after deployment.
+      <div className="mt-6 p-4 border border-white/10 bg-white/5 rounded-lg">
+        <p className="text-sm text-[#a5b7b0]">
+          Note: Skills can be enabled or disabled at any time from your dashboard after deployment.
         </p>
       </div>
     </div>
