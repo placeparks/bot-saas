@@ -100,7 +100,8 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
           enabled: true,
           allowFrom: normalizeAllowlist(channel.config.allowlist),
           dmPolicy: userConfig.dmPolicy || 'pairing',
-          ...(channel.config.groups && { groups: channel.config.groups })
+          ...(channel.config.groups && { groups: channel.config.groups }),
+          ...(channel.config.selfChatMode && { selfChatMode: true })
         }
         break
 
