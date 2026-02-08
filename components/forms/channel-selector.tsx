@@ -195,7 +195,7 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
                         <Badge className="text-xs bg-[var(--claw-mint)] text-[#0b0f0d]">Popular</Badge>
                       )}
                       {channel.badge && (
-                        <Badge className="text-xs bg-white/5 text-[#cfe3db] border border-white/15">
+                        <Badge className="text-xs border border-[var(--claw-mint)]/35 text-[var(--claw-mint)] bg-transparent">
                           {channel.badge}
                         </Badge>
                       )}
