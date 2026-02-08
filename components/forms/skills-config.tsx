@@ -119,7 +119,7 @@ export default function SkillsConfig({ config, onChange }: SkillsConfigProps) {
                         <button
                           type="button"
                           onClick={() => window.open(skill.getKeyUrl, '_blank')}
-                          className="px-4 py-2 border border-[var(--claw-mint)]/40 rounded-md text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[#e9f3ee] flex items-center space-x-2"
+                          className="px-4 py-2 border border-[var(--claw-mint)]/40 rounded-md text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)] flex items-center space-x-2"
                         >
                           <ExternalLink className="h-4 w-4" />
                           <span className="text-sm">Get Key</span>
