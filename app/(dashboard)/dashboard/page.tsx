@@ -18,7 +18,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchStatus()
-    const interval = setInterval(fetchStatus, 30000) // Refresh every 30s
+    const interval = setInterval(fetchStatus, 30000)
     return () => clearInterval(interval)
   }, [])
 
@@ -49,10 +49,10 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#0b0f0d] text-[#e9f3ee]">
         <div className="text-center">
-          <Activity className="h-12 w-12 animate-spin mx-auto mb-4 text-purple-600" />
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <Activity className="h-12 w-12 animate-spin mx-auto mb-4 text-[var(--claw-mint)]" />
+          <p className="text-[#a5b7b0]">Loading your dashboard...</p>
         </div>
       </div>
     )
@@ -60,18 +60,18 @@ export default function DashboardPage() {
 
   if (!data?.hasInstance) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-purple-50 to-white">
-        <Card className="max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-[#0b0f0d] text-[#e9f3ee]">
+        <Card className="max-w-md border border-white/10 bg-white/5">
           <CardHeader>
             <CardTitle>No Instance Found</CardTitle>
-            <CardDescription>
+            <CardDescription className="text-[#a5b7b0]">
               You haven't deployed your AI assistant yet.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button
               onClick={() => router.push('/onboard')}
-              className="w-full"
+              className="w-full bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
             >
               <Bot className="mr-2 h-4 w-4" />
               Deploy Your Bot
@@ -85,28 +85,38 @@ export default function DashboardPage() {
   const { instance, subscription } = data
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+    <div className="min-h-screen bg-[#0b0f0d] text-[#e9f3ee] [--claw-ink:#0b0f0d] [--claw-mint:#7df3c6] [--claw-ember:#ffb35a] [--claw-glow:rgba(125,243,198,0.28)]">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-24 -right-16 h-56 w-56 rounded-full bg-[var(--claw-mint)]/12 blur-3xl" />
+        <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-[var(--claw-ember)]/12 blur-3xl" />
+      </div>
+
       {/* Header */}
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+      <header className="relative border-b border-white/10 bg-white/5">
+        <div className="container mx-auto px-6 py-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center space-x-3">
-              <Bot className="h-8 w-8 text-purple-600" />
+              <div className="h-11 w-11 rounded-2xl border border-[var(--claw-mint)]/30 bg-[var(--claw-mint)]/10 flex items-center justify-center shadow-[0_0_30px_var(--claw-glow)]">
+                <Bot className="h-6 w-6 text-[var(--claw-mint)]" />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold">Your AI Assistant</h1>
-                <p className="text-sm text-gray-600">
+                <h1 className="text-2xl font-semibold">Your AI Assistant</h1>
+                <p className="text-sm text-[#a5b7b0]">
                   {subscription?.plan.replace('_', ' ')} Plan
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
               <Badge
-                variant={instance.status === 'RUNNING' ? 'default' : 'secondary'}
-                className={instance.status === 'RUNNING' ? 'bg-green-500' : ''}
+                className={instance.isHealthy ? 'bg-[var(--claw-mint)] text-[#0b0f0d]' : 'bg-white/10 text-[#cfe3db]'}
               >
-                {instance.isHealthy ? '● Online' : '○ Offline'}
+                {instance.isHealthy ? 'Online' : 'Offline'}
               </Badge>
-              <Button variant="outline" onClick={() => router.push('/settings')}>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/settings')}
+                className="border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)]"
+              >
                 Settings
               </Button>
             </div>
@@ -114,35 +124,31 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-6 py-10 relative">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Column */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Instance Status */}
             <InstanceStatus
               instance={instance}
               onAction={handleAction}
               actionLoading={actionLoading}
             />
 
-            {/* Channel Access */}
             <ChannelAccess channels={instance.channels} />
 
-            {/* Usage Stats */}
             <UsageStats instance={instance} />
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card>
+            <Card className="border border-white/10 bg-white/5">
               <CardHeader>
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
                   variant="outline"
-                  className="w-full justify-start"
+                  className="w-full justify-start border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                   onClick={() => handleAction('start')}
                   disabled={instance.status === 'RUNNING' || actionLoading}
                 >
@@ -151,7 +157,7 @@ export default function DashboardPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full justify-start"
+                  className="w-full justify-start border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                   onClick={() => handleAction('stop')}
                   disabled={instance.status === 'STOPPED' || actionLoading}
                 >
@@ -160,7 +166,7 @@ export default function DashboardPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full justify-start"
+                  className="w-full justify-start border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
                   onClick={() => handleAction('restart')}
                   disabled={actionLoading}
                 >
@@ -170,34 +176,33 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Subscription Info */}
-            <Card>
+            <Card className="border border-white/10 bg-white/5">
               <CardHeader>
                 <CardTitle className="text-lg">Subscription</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm text-gray-600">Plan</p>
-                    <p className="font-semibold">
-                      {subscription?.plan.replace('_', ' ')}
-                    </p>
+                    <p className="text-sm text-[#a5b7b0]">Plan</p>
+                    <p className="font-semibold">{subscription?.plan.replace('_', ' ')}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Status</p>
-                    <Badge variant={subscription?.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                    <p className="text-sm text-[#a5b7b0]">Status</p>
+                    <Badge className={subscription?.status === 'ACTIVE' ? 'bg-[var(--claw-mint)] text-[#0b0f0d]' : 'bg-white/10 text-[#cfe3db]'}>
                       {subscription?.status}
                     </Badge>
                   </div>
-                  <Button variant="outline" className="w-full mt-4">
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4 border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)]"
+                  >
                     Manage Subscription
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Help & Support */}
-            <Card>
+            <Card className="border border-white/10 bg-white/5">
               <CardHeader>
                 <CardTitle className="text-lg">Help & Support</CardTitle>
               </CardHeader>
@@ -206,14 +211,14 @@ export default function DashboardPage() {
                   href="https://docs.yourdomain.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center text-sm text-purple-600 hover:underline"
+                  className="flex items-center text-sm text-[var(--claw-mint)] hover:underline"
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Documentation
                 </a>
                 <a
                   href="mailto:support@yourdomain.com"
-                  className="flex items-center text-sm text-purple-600 hover:underline"
+                  className="flex items-center text-sm text-[var(--claw-mint)] hover:underline"
                 >
                   <MessageSquare className="mr-2 h-4 w-4" />
                   Contact Support
