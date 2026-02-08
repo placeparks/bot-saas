@@ -97,7 +97,6 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
     switch (channel.type) {
       case 'WHATSAPP':
         config.channels.whatsapp = {
-          enabled: true,
           allowFrom: normalizeAllowlist(channel.config.allowlist),
           dmPolicy: userConfig.dmPolicy || 'pairing',
           ...(channel.config.groups && { groups: channel.config.groups }),
