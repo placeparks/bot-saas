@@ -44,27 +44,27 @@ export default function ProviderConfig({ config, onChange }: ProviderConfigProps
     <div className="space-y-6">
       {/* Provider Selection */}
       <div>
-        <Label className="text-lg mb-4 block">Choose AI Provider</Label>
+        <Label className="text-lg mb-4 block text-[#e9f3ee]">Choose AI Provider</Label>
         <div className="grid md:grid-cols-2 gap-4">
           {providers.map(provider => (
             <Card
               key={provider.id}
-              className={`p-4 cursor-pointer transition-all ${
+              className={`p-4 cursor-pointer border border-white/10 bg-white/5 transition-all ${
                 config.provider === provider.id
-                  ? 'ring-2 ring-purple-600'
-                  : 'hover:shadow-md'
+                  ? 'ring-2 ring-[var(--claw-mint)] shadow-[0_18px_50px_rgba(0,0,0,0.35)]'
+                  : 'hover:border-[var(--claw-mint)]/30'
               }`}
               onClick={() => onChange({ provider: provider.id })}
             >
               <div className="flex items-start justify-between mb-2">
-                <h4 className="font-semibold">{provider.name}</h4>
+                <h4 className="font-semibold text-[#e9f3ee]">{provider.name}</h4>
                 {provider.badge && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge className="bg-[var(--claw-mint)] text-[#0b0f0d] text-xs">
                     {provider.badge}
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-gray-600">{provider.description}</p>
+              <p className="text-sm text-[#a5b7b0]">{provider.description}</p>
             </Card>
           ))}
         </div>
@@ -72,10 +72,10 @@ export default function ProviderConfig({ config, onChange }: ProviderConfigProps
 
       {/* API Key Input */}
       <div>
-        <Label htmlFor="apiKey" className="text-lg mb-2 block">
+        <Label htmlFor="apiKey" className="text-lg mb-2 block text-[#e9f3ee]">
           API Key
         </Label>
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-sm text-[#a5b7b0] mb-3">
           Your API key is encrypted and never shared. We use it only to run your bot.
         </p>
         <div className="flex gap-2">
@@ -86,7 +86,7 @@ export default function ProviderConfig({ config, onChange }: ProviderConfigProps
               placeholder={`Enter your ${providers.find(p => p.id === config.provider)?.name} API key`}
               value={config.apiKey}
               onChange={(e) => onChange({ apiKey: e.target.value })}
-              className="pr-10"
+              className="pr-10 border-white/10 bg-white/5 text-[#e9f3ee] placeholder:text-[#6e827a]"
             />
             <button
               type="button"
@@ -94,9 +94,9 @@ export default function ProviderConfig({ config, onChange }: ProviderConfigProps
               className="absolute right-3 top-1/2 -translate-y-1/2"
             >
               {showApiKey ? (
-                <EyeOff className="h-4 w-4 text-gray-400" />
+                <EyeOff className="h-4 w-4 text-[#8fa29a]" />
               ) : (
-                <Eye className="h-4 w-4 text-gray-400" />
+                <Eye className="h-4 w-4 text-[#8fa29a]" />
               )}
             </button>
           </div>
@@ -106,6 +106,7 @@ export default function ProviderConfig({ config, onChange }: ProviderConfigProps
               const provider = providers.find(p => p.id === config.provider)
               if (provider) window.open(provider.getKeyUrl, '_blank')
             }}
+            className="border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[#e9f3ee]"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Get Key
@@ -115,15 +116,15 @@ export default function ProviderConfig({ config, onChange }: ProviderConfigProps
 
       {/* Model Selection (Optional) */}
       <div>
-        <Label htmlFor="model" className="text-lg mb-2 block">
+        <Label htmlFor="model" className="text-lg mb-2 block text-[#e9f3ee]">
           Model (Optional)
         </Label>
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-sm text-[#a5b7b0] mb-3">
           We'll use the best model by default. Advanced users can override this.
         </p>
         <select
           id="model"
-          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="w-full h-10 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#e9f3ee]"
           value={config.model}
           onChange={(e) => onChange({ model: e.target.value })}
         >
