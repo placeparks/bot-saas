@@ -161,8 +161,8 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-2">Select Channels</h3>
-        <p className="text-sm text-gray-600 mb-4">
+        <h3 className="text-lg font-semibold mb-2 text-[#e9f3ee]">Select Channels</h3>
+        <p className="text-sm text-[#a5b7b0] mb-4">
           Choose which messaging platforms you want to connect your bot to.
         </p>
       </div>
@@ -175,8 +175,8 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
           return (
             <div key={channel.type}>
               <Card
-                className={`p-4 cursor-pointer transition-all ${
-                  isSelected ? 'ring-2 ring-purple-600' : 'hover:shadow-md'
+                className={`p-4 cursor-pointer border border-white/10 bg-white/5 transition-all ${
+                  isSelected ? 'ring-2 ring-[var(--claw-mint)]' : 'hover:border-[var(--claw-mint)]/30'
                 }`}
                 onClick={() => toggleChannel(channel.type)}
               >
@@ -185,28 +185,29 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
                     checked={isSelected}
                     onCheckedChange={() => toggleChannel(channel.type)}
                     onClick={(e) => e.stopPropagation()}
+                    className="border-white/30 data-[state=checked]:bg-[var(--claw-mint)] data-[state=checked]:text-[#0b0f0d]"
                   />
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <Icon className="h-5 w-5 text-purple-600" />
-                      <span className="font-semibold">{channel.name}</span>
+                      <Icon className="h-5 w-5 text-[var(--claw-mint)]" />
+                      <span className="font-semibold text-[#e9f3ee]">{channel.name}</span>
                       {channel.popular && (
-                        <Badge variant="secondary" className="text-xs">Popular</Badge>
+                        <Badge className="text-xs bg-[var(--claw-mint)] text-[#0b0f0d]">Popular</Badge>
                       )}
                       {channel.badge && (
-                        <Badge className="text-xs bg-green-500">{channel.badge}</Badge>
+                        <Badge className="text-xs bg-[var(--claw-ember)] text-[#0b0f0d]">{channel.badge}</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">{channel.description}</p>
+                    <p className="text-sm text-[#a5b7b0]">{channel.description}</p>
                     {channel.helpUrl && (
                       <a
                         href={channel.helpUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-purple-600 hover:underline mt-1 inline-block"
+                        className="text-xs text-[var(--claw-mint)] hover:underline mt-1 inline-block"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Setup Guide →
+                        Setup guide ->
                       </a>
                     )}
                   </div>
@@ -215,13 +216,13 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
 
               {/* Configuration Fields */}
               {isSelected && channel.fields && (
-                <Card className="mt-2 p-4 bg-purple-50">
+                <Card className="mt-2 p-4 border border-white/10 bg-white/5">
                   <div className="space-y-3">
                     {channel.fields.map(field => (
                       <div key={field.key}>
-                        <Label htmlFor={`${channel.type}-${field.key}`} className="text-sm">
+                        <Label htmlFor={`${channel.type}-${field.key}`} className="text-sm text-[#cfe3db]">
                           {field.label}
-                          {field.required && <span className="text-red-500 ml-1">*</span>}
+                          {field.required && <span className="text-red-400 ml-1">*</span>}
                         </Label>
                         {field.type === 'textarea' ? (
                           <textarea
@@ -229,7 +230,7 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
                             placeholder={field.placeholder}
                             value={channelConfigs[channel.type]?.[field.key] || ''}
                             onChange={(e) => updateChannelConfig(channel.type, field.key, e.target.value)}
-                            className="w-full min-h-[100px] rounded-md border border-input bg-white px-3 py-2 text-sm"
+                            className="w-full min-h-[100px] rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#e9f3ee] placeholder:text-[#6e827a]"
                             onClick={(e) => e.stopPropagation()}
                           />
                         ) : (
@@ -240,6 +241,7 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
                             value={channelConfigs[channel.type]?.[field.key] || ''}
                             onChange={(e) => updateChannelConfig(channel.type, field.key, e.target.value)}
                             onClick={(e) => e.stopPropagation()}
+                            className="border-white/10 bg-white/5 text-[#e9f3ee] placeholder:text-[#6e827a]"
                           />
                         )}
                       </div>
@@ -253,7 +255,7 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
       </div>
 
       {selectedChannels.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-[#8fa29a]">
           Select at least one channel to continue
         </div>
       )}
