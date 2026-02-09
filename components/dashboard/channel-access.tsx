@@ -386,7 +386,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     {!qrLoading && qrImage && (
                       <img src={qrImage} alt="WhatsApp QR Code" className="w-56 h-56" />
                     )}
-                    {!qrLoading && !qrImage && (
+                    {!qrLoading && !qrImage && !qrRaw && (
                       <p className="text-[#8fa29a] text-center">
                         QR Code not available yet.
                         <br />
@@ -400,9 +400,11 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     </p>
                   )}
                   {qrRaw && !qrImage && (
-                    <pre className="mt-3 max-h-32 overflow-auto text-xs text-[#8fa29a] bg-black/30 p-2 rounded border border-white/10">
-                      {qrRaw}
-                    </pre>
+                    <div className="mt-3 bg-black/30 rounded border border-white/10 p-2">
+                      <pre className="max-h-[360px] overflow-auto text-[10px] leading-[10px] text-[#cfe3db] font-mono">
+                        {qrRaw}
+                      </pre>
+                    </div>
                   )}
                 </div>
                 <Button
