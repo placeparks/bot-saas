@@ -47,6 +47,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
   const [qrData, setQrData] = useState<string | null>(null)
   const [qrImage, setQrImage] = useState<string | null>(null)
   const [qrRaw, setQrRaw] = useState<string | null>(null)
+  const [qrAsciiImage, setQrAsciiImage] = useState<string | null>(null)
   const [qrRefreshTick, setQrRefreshTick] = useState(0)
   const telegramChannel = channels?.find((c) => c.type === 'TELEGRAM')
   const telegramUsername = telegramChannel?.botUsername?.replace('@', '')
@@ -167,6 +168,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
     setQrData(null)
     setQrImage(null)
     setQrRaw(null)
+    setQrAsciiImage(null)
 
     if (channelType !== 'WHATSAPP') {
       setQrLoading(false)
@@ -215,6 +217,64 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
       cancelled = true
     }
   }, [qrData])
+
+  useEffect(() => {
+    if (!qrRaw) return
+
+    const lines = qrRaw
+      .split('\n')
+      .map((l) => l.replace(/\r/g, ''))
+      .filter((l) => /[█▀▄]/.test(l))
+
+    if (lines.length === 0) return
+
+    const width = Math.max(...lines.map((l) => l.length))
+    const height = lines.length * 2
+
+    const pixels: number[][] = Array.from({ length: height }, () => Array(width).fill(0))
+    for (let y = 0; y < lines.length; y++) {
+      const line = lines[y]
+      for (let x = 0; x < width; x++) {
+        const ch = line[x] || ' '
+        const topRow = y * 2
+        const bottomRow = y * 2 + 1
+        if (ch === '█') {
+          pixels[topRow][x] = 1
+          pixels[bottomRow][x] = 1
+        } else if (ch === '▀') {
+          pixels[topRow][x] = 1
+        } else if (ch === '▄') {
+          pixels[bottomRow][x] = 1
+        }
+      }
+    }
+
+    const targetSize = 360
+    const scale = Math.max(2, Math.floor(targetSize / width))
+    const canvas = document.createElement('canvas')
+    canvas.width = width * scale
+    canvas.height = height * scale
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    ctx.fillStyle = '#f5fff8'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = '#0b0f0d'
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (pixels[y][x]) {
+          ctx.fillRect(x * scale, y * scale, scale, scale)
+        }
+      }
+    }
+
+    try {
+      const dataUrl = canvas.toDataURL('image/png')
+      setQrAsciiImage(dataUrl)
+    } catch {
+      // fallback to raw text
+    }
+  }, [qrRaw, qrRefreshTick])
 
   const refreshQr = () => {
     if (!showingQR) return
@@ -396,6 +456,9 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     {!qrLoading && qrImage && (
                       <img src={qrImage} alt="WhatsApp QR Code" className="w-80 h-80" />
                     )}
+                    {!qrLoading && !qrImage && qrAsciiImage && (
+                      <img src={qrAsciiImage} alt="WhatsApp QR Code" className="w-80 h-80" />
+                    )}
                     {!qrLoading && !qrImage && !qrRaw && (
                       <p className="text-[#8fa29a] text-center">
                         QR Code not available yet.
@@ -403,7 +466,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                         Try again in a few seconds.
                       </p>
                     )}
-                    {!qrLoading && !qrImage && qrRaw && (
+                    {!qrLoading && !qrImage && !qrAsciiImage && qrRaw && (
                       <pre className="w-full text-[10px] leading-[10px] text-[#cfe3db] font-mono whitespace-pre">
                         {qrRaw}
                       </pre>
