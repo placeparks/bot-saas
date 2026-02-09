@@ -55,7 +55,22 @@ export async function POST() {
       return NextResponse.json({ error: 'Instance has no service host' }, { status: 400 })
     }
 
-    const url = `http://${host}:18800/whatsapp/qr`
+    let publicUrl: string | null = null
+    if (serviceUrl && !serviceUrl.includes('railway.internal')) {
+      publicUrl = serviceUrl
+    } else if (serviceId) {
+      try {
+        const railway = new RailwayClient()
+        const deployment = await railway.getLatestDeployment(serviceId)
+        if (deployment?.url) publicUrl = deployment.url
+      } catch {
+        publicUrl = null
+      }
+    }
+
+    const url = publicUrl
+      ? `${(publicUrl.startsWith('http') ? publicUrl : `https://${publicUrl}`).replace(/\/$/, '')}/whatsapp/qr`
+      : `http://${host}:18800/whatsapp/qr`
     let response: Response
     try {
       response = await fetch(url, {
@@ -71,7 +86,8 @@ export async function POST() {
             serviceId,
             resolvedName,
             serviceName,
-            serviceUrl
+            serviceUrl,
+            publicUrl
           }
         },
         { status: 502 }
