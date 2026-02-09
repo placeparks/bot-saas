@@ -47,6 +47,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
   const [qrData, setQrData] = useState<string | null>(null)
   const [qrImage, setQrImage] = useState<string | null>(null)
   const [qrRaw, setQrRaw] = useState<string | null>(null)
+  const [qrRefreshTick, setQrRefreshTick] = useState(0)
   const telegramChannel = channels?.find((c) => c.type === 'TELEGRAM')
   const telegramUsername = telegramChannel?.botUsername?.replace('@', '')
   const telegramPairLink =
@@ -173,7 +174,10 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
     }
 
     try {
-      const response = await fetch('/api/instance/whatsapp/qr', { method: 'POST' })
+      const response = await fetch('/api/instance/whatsapp/qr', {
+        method: 'POST',
+        cache: 'no-store'
+      })
       const result = await response.json()
 
       if (!response.ok || !result?.success) {
@@ -199,7 +203,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
     let cancelled = false
     if (!qrData) return
 
-    QRCode.toDataURL(qrData, { margin: 1, width: 256 })
+    QRCode.toDataURL(qrData, { margin: 1, width: 360 })
       .then((url) => {
         if (!cancelled) setQrImage(url)
       })
@@ -211,6 +215,12 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
       cancelled = true
     }
   }, [qrData])
+
+  const refreshQr = () => {
+    if (!showingQR) return
+    setQrRefreshTick((t) => t + 1)
+    openQr(showingQR)
+  }
 
   if (!channels || channels.length === 0) {
     return (
@@ -384,7 +394,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       <p className="text-[#8fa29a] text-center">Generating QR...</p>
                     )}
                     {!qrLoading && qrImage && (
-                      <img src={qrImage} alt="WhatsApp QR Code" className="w-72 h-72" />
+                      <img src={qrImage} alt="WhatsApp QR Code" className="w-80 h-80" />
                     )}
                     {!qrLoading && !qrImage && !qrRaw && (
                       <p className="text-[#8fa29a] text-center">
@@ -394,7 +404,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       </p>
                     )}
                     {!qrLoading && !qrImage && qrRaw && (
-                      <pre className="max-h-[420px] w-full overflow-auto text-[10px] leading-[10px] text-[#cfe3db] font-mono">
+                      <pre className="w-full text-[10px] leading-[10px] text-[#cfe3db] font-mono whitespace-pre">
                         {qrRaw}
                       </pre>
                     )}
@@ -405,12 +415,22 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     </p>
                   )}
                 </div>
-                <Button
-                  className="w-full mt-4 bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
-                  onClick={() => setShowingQR(null)}
-                >
-                  Close
-                </Button>
+                <div className="mt-4 flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                    onClick={refreshQr}
+                    disabled={qrLoading}
+                  >
+                    {qrLoading ? 'Refreshing...' : 'Refresh QR'}
+                  </Button>
+                  <Button
+                    className="flex-1 bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
+                    onClick={() => setShowingQR(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
