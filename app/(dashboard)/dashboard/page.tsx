@@ -73,7 +73,7 @@ export default function DashboardPage() {
               onClick={() => router.push('/onboard')}
               className="w-full bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
             >
-              <Bot className="mr-2 h-4 w-4 text-[#a5b7b0]" />
+              <Bot className="mr-2 h-4 w-4 text-[#e9f3ee]" />
               Deploy Your Bot
             </Button>
           </CardContent>
