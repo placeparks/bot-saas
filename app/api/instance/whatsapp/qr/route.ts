@@ -68,20 +68,49 @@ export async function POST() {
       }
     }
 
-    const url = publicUrl
-      ? `${(publicUrl.startsWith('http') ? publicUrl : `https://${publicUrl}`).replace(/\/$/, '')}/whatsapp/qr`
-      : `http://${host}:18800/whatsapp/qr`
-    let response: Response
-    try {
-      response = await fetch(url, {
-        method: 'POST',
-        signal: AbortSignal.timeout(25000)
-      })
-    } catch (error: any) {
+    const normalizeBase = (base: string) =>
+      (base.startsWith('http') ? base : `https://${base}`).replace(/\/$/, '')
+
+    const candidates: string[] = []
+    if (publicUrl) {
+      candidates.push(`${normalizeBase(publicUrl)}/whatsapp/qr`)
+    }
+
+    if (serviceUrl) {
+      try {
+        const parsed = new URL(serviceUrl)
+        const port = parsed.port ? Number(parsed.port) : 0
+        if (port === 18789) parsed.port = '18800'
+        if (!parsed.port) parsed.port = '18800'
+        candidates.push(`${parsed.toString().replace(/\/$/, '')}/whatsapp/qr`)
+      } catch {
+        // ignore malformed serviceUrl
+      }
+    }
+
+    if (host) {
+      candidates.push(`http://${host}:18800/whatsapp/qr`)
+    }
+
+    let response: Response | null = null
+    const errors: { url: string; message: string }[] = []
+    for (const url of candidates) {
+      try {
+        response = await fetch(url, {
+          method: 'POST',
+          signal: AbortSignal.timeout(25000)
+        })
+        if (response.ok) break
+      } catch (error: any) {
+        errors.push({ url, message: error?.message || 'Fetch failed' })
+      }
+    }
+
+    if (!response) {
       return NextResponse.json(
         {
-          error: error.message || 'Failed to reach instance',
-          url,
+          error: 'Failed to reach instance',
+          attempts: errors,
           debug: {
             serviceId,
             resolvedName,
