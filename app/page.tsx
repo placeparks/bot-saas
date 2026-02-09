@@ -95,15 +95,18 @@ export default function Home() {
                   See plans
                 </Link>
               </div>
-              <div className="mt-10 grid grid-cols-3 gap-4 text-center">
+              <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 {[
-                  { label: 'Deploy time', value: '< 5 min' },
+                  { label: 'Deploy time', value: 'Under 5 min' },
                   { label: 'Channels', value: '8+' },
                   { label: 'Uptime', value: '99.9%' }
                 ].map((stat) => (
-                  <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="text-xl font-semibold text-[var(--claw-mint)]">{stat.value}</div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-[#98a9a1]">{stat.label}</div>
+                  <div
+                    key={stat.label}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 sm:p-4"
+                  >
+                    <div className="text-2xl sm:text-xl font-semibold text-[var(--claw-mint)]">{stat.value}</div>
+                    <div className="mt-1 text-xs sm:text-[11px] text-[#9fb1aa]">{stat.label}</div>
                   </div>
                 ))}
               </div>
