@@ -148,8 +148,8 @@ export default function TemplateSelection({ selectedTemplate, onSelect }: Templa
                   variant="outline"
                   className={`border-white/15 ${
                     isSelected
-                      ? 'text-[var(--claw-mint)] border-[var(--claw-mint)]/50'
-                      : 'text-[#e9f3ee] hover:border-[var(--claw-mint)]/60'
+                      ? 'text-[#216e47] border-[var(--claw-mint)]/50'
+                      : 'text-[#216e47] hover:border-[var(--claw-mint)]/60'
                   }`}
                 >
                   {isSelected ? 'Selected' : 'Choose Template'}
