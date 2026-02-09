@@ -481,7 +481,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                 <div className="mt-4 flex gap-2">
                   <Button
                     variant="outline"
-                    className="flex-1 border-white/15 text-[#216e47] hover:border-[var(--claw-mint)]/60"
+                    className="flex-1 border-white/15 text-[#2f7351] hover:border-[var(--claw-mint)]/60"
                     onClick={refreshQr}
                     disabled={qrLoading}
                   >
