@@ -182,6 +182,8 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
 
       if (result?.qr) {
         setQrData(result.qr)
+      } else if (result?.raw && result.raw.includes('▄▄') && result.raw.includes('█')) {
+        setQrRaw(result.raw)
       } else {
         setQrRaw(result?.raw || '')
         throw new Error('QR data not returned. Check instance logs.')
@@ -306,7 +308,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                      className="border-white/15 text-[#2f7351] hover:border-[var(--claw-mint)]/60"
                       onClick={() => openQr(channel.type)}
                     >
                       <QrCode className="h-4 w-4 mr-2" />
