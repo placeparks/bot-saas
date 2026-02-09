@@ -153,7 +153,7 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
     updateChannels(newSelected, channelConfigs)
   }
 
-  const updateChannelConfig = (channelType: string, field: string, value: string) => {
+  const updateChannelConfig = (channelType: string, field: string, value: string | boolean) => {
     const newConfigs = {
       ...channelConfigs,
       [channelType]: {
