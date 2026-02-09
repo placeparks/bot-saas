@@ -50,6 +50,16 @@ export async function POST() {
       }
     }
 
+    if (!host && serviceId) {
+      try {
+        const railway = new RailwayClient()
+        const resolvedName = await railway.getServiceName(serviceId)
+        if (resolvedName) host = `${resolvedName}.railway.internal`
+      } catch {
+        host = host
+      }
+    }
+
     if (!host) {
       return NextResponse.json({ error: 'Instance has no service host' }, { status: 400 })
     }
