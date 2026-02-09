@@ -1,309 +1,603 @@
 'use client'
 
-import { useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquare, Send, Hash, Zap, Phone, Mail, Grid, Users } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { MessageSquare, Send, Hash, Zap, Phone, Mail, Grid, Users, Copy, ExternalLink, QrCode, Terminal } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import QRCode from 'qrcode'
 
-interface ChannelField {
-  key: string
-  label: string
-  placeholder: string
-  type: string
-  required?: boolean
-  options?: { label: string; value: string }[]
+const channelIcons: Record<string, any> = {
+  WHATSAPP: MessageSquare,
+  TELEGRAM: Send,
+  DISCORD: Hash,
+  SLACK: Zap,
+  SIGNAL: Phone,
+  GOOGLE_CHAT: Mail,
+  MATRIX: Grid,
+  MSTEAMS: Users
 }
 
-interface Channel {
-  type: string
-  name: string
-  icon: any
-  description: string
-  badge?: string
-  popular?: boolean
-  fields?: ChannelField[]
-  helpUrl?: string
-}
-
-const availableChannels: Channel[] = [
-  {
-    type: 'WHATSAPP',
-    name: 'WhatsApp',
-    icon: MessageSquare,
-    description: 'Linked Devices QR after deployment (Baileys)',
-    badge: 'Web session',
-    popular: true,
-    fields: [
-      {
-        key: 'dmPolicy',
-        label: 'DM Policy',
-        placeholder: '',
-        type: 'select',
-        required: true,
-        options: [
-          { label: 'Pairing (recommended)', value: 'pairing' },
-          { label: 'Allowlist', value: 'allowlist' },
-          { label: 'Open', value: 'open' },
-          { label: 'Disabled', value: 'disabled' }
-        ]
-      },
-      { key: 'allowlist', label: 'Allowed Phone Numbers (E.164)', placeholder: '+15551234567, +447700900123', type: 'text' },
-      { key: 'selfChatMode', label: 'Personal number (self-chat mode)', placeholder: '', type: 'checkbox' }
-    ]
-  },
-  {
-    type: 'TELEGRAM',
-    name: 'Telegram',
-    icon: Send,
-    description: 'Create bot with @BotFather',
-    popular: true,
-    fields: [
-      { key: 'botToken', label: 'Bot Token', placeholder: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', type: 'password', required: true },
-      { key: 'allowlist', label: 'Allowed Usernames (optional)', placeholder: '@username1, @username2', type: 'text' }
-    ],
-    helpUrl: 'https://t.me/botfather'
-  },
-  {
-    type: 'DISCORD',
-    name: 'Discord',
-    icon: Hash,
-    description: 'Create bot in Discord Developer Portal',
-    fields: [
-      { key: 'token', label: 'Bot Token', placeholder: 'Your bot token', type: 'password', required: true },
-      { key: 'applicationId', label: 'Application ID', placeholder: 'Your application ID', type: 'text', required: true },
-      { key: 'guilds', label: 'Server IDs (optional)', placeholder: '123456789, 987654321', type: 'text' }
-    ],
-    helpUrl: 'https://discord.com/developers/applications'
-  },
-  {
-    type: 'SLACK',
-    name: 'Slack',
-    icon: Zap,
-    description: 'Create app in Slack API',
-    fields: [
-      { key: 'botToken', label: 'Bot Token', placeholder: 'xoxb-...', type: 'password', required: true },
-      { key: 'appToken', label: 'App Token', placeholder: 'xapp-...', type: 'password', required: true }
-    ],
-    helpUrl: 'https://api.slack.com/apps'
-  },
-  {
-    type: 'SIGNAL',
-    name: 'Signal',
-    icon: Phone,
-    description: 'Phone number required',
-    fields: [
-      { key: 'phoneNumber', label: 'Phone Number', placeholder: '+1234567890', type: 'tel', required: true }
-    ]
-  },
-  {
-    type: 'GOOGLE_CHAT',
-    name: 'Google Chat',
-    icon: Mail,
-    description: 'Service account from Google Cloud',
-    fields: [
-      { key: 'serviceAccount', label: 'Service Account JSON', placeholder: 'Paste JSON here', type: 'textarea', required: true }
-    ],
-    helpUrl: 'https://console.cloud.google.com'
-  },
-  {
-    type: 'MATRIX',
-    name: 'Matrix',
-    icon: Grid,
-    description: 'Homeserver and access token',
-    fields: [
-      { key: 'homeserverUrl', label: 'Homeserver URL', placeholder: 'https://matrix.org', type: 'url', required: true },
-      { key: 'accessToken', label: 'Access Token', placeholder: 'Your access token', type: 'password', required: true },
-      { key: 'userId', label: 'User ID', placeholder: '@bot:matrix.org', type: 'text', required: true }
-    ]
-  },
-  {
-    type: 'MSTEAMS',
-    name: 'MS Teams',
-    icon: Users,
-    description: 'Microsoft Teams bot',
-    fields: [
-      { key: 'appId', label: 'App ID', placeholder: 'Your app ID', type: 'text', required: true },
-      { key: 'appPassword', label: 'App Password', placeholder: 'Your app password', type: 'password', required: true }
-    ]
-  }
-]
-
-interface ChannelSelectorProps {
+interface ChannelAccessProps {
   channels: any[]
-  onChange: (channels: any[]) => void
 }
 
-export default function ChannelSelector({ channels, onChange }: ChannelSelectorProps) {
-  const [selectedChannels, setSelectedChannels] = useState<string[]>(
-    channels.map(c => c.type) || []
-  )
-  const [channelConfigs, setChannelConfigs] = useState<Record<string, any>>(
-    channels.reduce((acc, c) => ({ ...acc, [c.type]: c.config }), {})
-  )
+interface PairingRequest {
+  code?: string
+  userId?: string
+  expires?: string
+  raw?: string
+}
 
-  const toggleChannel = (channelType: string) => {
-    const newSelected = selectedChannels.includes(channelType)
-      ? selectedChannels.filter(c => c !== channelType)
-      : [...selectedChannels, channelType]
+export default function ChannelAccess({ channels }: ChannelAccessProps) {
+  const [showingQR, setShowingQR] = useState<string | null>(null)
+  const [pairingChannel, setPairingChannel] = useState<string | null>(null)
+  const [pairingCode, setPairingCode] = useState('')
+  const [pairingError, setPairingError] = useState<string | null>(null)
+  const [pairingSuccess, setPairingSuccess] = useState<string | null>(null)
+  const [pairingLoading, setPairingLoading] = useState(false)
+  const [pendingRequests, setPendingRequests] = useState<PairingRequest[]>([])
+  const [showPendingRequests, setShowPendingRequests] = useState(false)
+  const [loadingRequests, setLoadingRequests] = useState(false)
+  const [showCliCommand, setShowCliCommand] = useState(false)
+  const [cliCommand, setCliCommand] = useState('')
+  const [apiOutput, setApiOutput] = useState('')
+  const [qrLoading, setQrLoading] = useState(false)
+  const [qrError, setQrError] = useState<string | null>(null)
+  const [qrData, setQrData] = useState<string | null>(null)
+  const [qrImage, setQrImage] = useState<string | null>(null)
+  const [qrRaw, setQrRaw] = useState<string | null>(null)
+  const telegramChannel = channels?.find((c) => c.type === 'TELEGRAM')
+  const telegramUsername = telegramChannel?.botUsername?.replace('@', '')
+  const telegramPairLink =
+    telegramUsername && pairingCode
+      ? `https://t.me/${telegramUsername}?start=${encodeURIComponent(pairingCode)}`
+      : '#'
 
-    setSelectedChannels(newSelected)
-    updateChannels(newSelected, channelConfigs)
-  }
-
-  const updateChannelConfig = (channelType: string, field: string, value: string | boolean) => {
-    const newConfigs = {
-      ...channelConfigs,
-      [channelType]: {
-        ...channelConfigs[channelType],
-        [field]: value
-      }
+  const getAccessInfo = (channel: any) => {
+    switch (channel.type) {
+      case 'WHATSAPP':
+        return {
+          label: 'QR Code',
+          value: 'Click to view',
+          action: 'qr'
+        }
+      case 'TELEGRAM':
+        return {
+          label: 'Bot Username',
+          value: channel.botUsername || '@yourbot',
+          link: channel.botUsername
+            ? `https://t.me/${channel.botUsername.replace('@', '')}`
+            : undefined
+        }
+      case 'DISCORD':
+        return {
+          label: 'Invite Link',
+          value: channel.inviteLink || 'Generate in Discord',
+          link: channel.inviteLink
+        }
+      default:
+        return {
+          label: 'Status',
+          value: channel.enabled ? 'Connected' : 'Disconnected'
+        }
     }
-    setChannelConfigs(newConfigs)
-    updateChannels(selectedChannels, newConfigs)
   }
 
-  const updateChannels = (selected: string[], configs: Record<string, any>) => {
-    const newChannels = selected.map(type => ({
-      type,
-      config: configs[type] || {}
-    }))
-    onChange(newChannels)
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    alert('Copied to clipboard!')
+  }
+
+  const loadPendingRequests = async () => {
+    setLoadingRequests(true)
+    setPairingError(null)
+
+    try {
+      const response = await fetch('/api/instance/pair/list?channel=telegram')
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Failed to load pending requests')
+      }
+
+      setPendingRequests(result?.requests || [])
+      setShowPendingRequests(true)
+    } catch (error: any) {
+      setPairingError(error.message || 'Failed to load pending requests')
+    } finally {
+      setLoadingRequests(false)
+    }
+  }
+
+  const doApprovePairing = async () => {
+    setPairingError(null)
+    setPairingSuccess(null)
+    setPairingLoading(true)
+    setApiOutput('')
+    setShowCliCommand(false)
+
+    try {
+      const response = await fetch('/api/instance/pair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel: 'telegram',
+          code: pairingCode.trim()
+        })
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        if (result?.output) {
+          setApiOutput(result.output)
+        }
+
+        if (result?.instructions) {
+          setCliCommand(result.cliCommand)
+          setShowCliCommand(true)
+          setPairingSuccess(result?.message || 'Use the command below to approve')
+        } else {
+          setShowCliCommand(false)
+          setPairingSuccess(result?.message || 'Pairing approved successfully!')
+        }
+      } else {
+        setPairingError(result?.error || 'Pairing failed')
+      }
+    } catch (error: any) {
+      setPairingError('Network error - showing manual approval method')
+      setCliCommand(`openclaw pairing approve telegram ${pairingCode.trim()}`)
+      setShowCliCommand(true)
+    } finally {
+      setPairingLoading(false)
+    }
+  }
+
+  const approvePairing = () => {
+    if (!pairingCode) return
+    doApprovePairing()
+  }
+
+  const openQr = async (channelType: string) => {
+    setShowingQR(channelType)
+    setQrLoading(true)
+    setQrError(null)
+    setQrData(null)
+    setQrImage(null)
+    setQrRaw(null)
+
+    if (channelType !== 'WHATSAPP') {
+      setQrLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch('/api/instance/whatsapp/qr', { method: 'POST' })
+      const result = await response.json()
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.error || 'Failed to generate QR')
+      }
+
+      if (result?.qr) {
+        setQrData(result.qr)
+      } else if (result?.raw && result.raw.includes('▄▄') && result.raw.includes('█')) {
+        setQrRaw(result.raw)
+      } else {
+        setQrRaw(result?.raw || '')
+        throw new Error('QR data not returned. Check instance logs.')
+      }
+    } catch (error: any) {
+      setQrError(error.message || 'Failed to generate QR')
+    } finally {
+      setQrLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    if (!qrData) return
+
+    QRCode.toDataURL(qrData, { margin: 1, width: 256 })
+      .then((url) => {
+        if (!cancelled) setQrImage(url)
+      })
+      .catch(() => {
+        if (!cancelled) setQrError('Failed to render QR')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [qrData])
+
+  if (!channels || channels.length === 0) {
+    return (
+      <Card className="border border-white/10 bg-white/5 text-[#e9f3ee]">
+        <CardHeader>
+          <CardTitle>Channel Access</CardTitle>
+          <CardDescription className="text-[#a5b7b0]">No channels configured</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <p className="text-sm text-[#a5b7b0]">
+              Configure channels in your instance settings to start chatting with your bot.
+            </p>
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
+              <p className="text-sm font-medium">Pair Telegram</p>
+              <input
+                className="w-full border border-white/10 rounded-md bg-white/5 px-3 py-2 text-sm text-[#e9f3ee] placeholder:text-[#6e827a]"
+                placeholder="Enter pairing code"
+                value={pairingCode}
+                onChange={(e) => setPairingCode(e.target.value)}
+              />
+              {pairingError && (
+                <p className="text-sm text-red-400">{pairingError}</p>
+              )}
+              {pairingSuccess && (
+                <p className="text-sm text-[var(--claw-mint)]">{pairingSuccess}</p>
+              )}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                  onClick={() => copyToClipboard(pairingCode ? `/pair ${pairingCode}` : '/pair')}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy Command
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                  onClick={approvePairing}
+                  disabled={!pairingCode || pairingLoading}
+                >
+                  {pairingLoading ? 'Pairing...' : 'Pair Now'}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-[#8fa29a]">
+              Pairing works without channel config, but Telegram deep links need a bot username.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-2 text-[#e9f3ee]">Select Channels</h3>
-        <p className="text-sm text-[#a5b7b0] mb-4">
-          Choose which messaging platforms you want to connect your bot to.
-        </p>
-      </div>
+    <Card className="border border-white/10 bg-white/5 text-[#e9f3ee]">
+      <CardHeader>
+        <CardTitle>Channel Access</CardTitle>
+        <CardDescription className="text-[#a5b7b0]">Connect to your bot on these platforms</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {channels.map((channel, index) => {
+            const Icon = channelIcons[channel.type] || MessageSquare
+            const accessInfo = getAccessInfo(channel)
 
-      <div className="grid md:grid-cols-2 gap-4">
-        {availableChannels.map(channel => {
-          const Icon = channel.icon
-          const isSelected = selectedChannels.includes(channel.type)
-
-          return (
-            <div key={channel.type}>
-              <Card
-                className={`p-4 cursor-pointer border border-white/10 bg-white/5 transition-all ${
-                  isSelected ? 'ring-2 ring-[var(--claw-mint)]' : 'hover:border-[var(--claw-mint)]/30'
-                }`}
-                onClick={() => toggleChannel(channel.type)}
+            return (
+              <div
+                key={index}
+                className="flex items-center justify-between p-4 border border-white/10 rounded-lg bg-white/5 hover:border-[var(--claw-mint)]/30 transition"
               >
-                <div className="flex items-start space-x-3">
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => toggleChannel(channel.type)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="border-white/30 data-[state=checked]:bg-[var(--claw-mint)] data-[state=checked]:text-[#0b0f0d]"
-                  />
+                <div className="flex items-center space-x-4 flex-1">
+                  <div className="p-3 rounded-lg border border-white/10 bg-white/5">
+                    <Icon className="h-5 w-5 text-[var(--claw-mint)]" />
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <Icon className="h-5 w-5 text-[var(--claw-mint)]" />
-                      <span className="font-semibold text-[#e9f3ee]">{channel.name}</span>
-                      {channel.popular && (
-                        <Badge className="text-xs bg-[var(--claw-mint)] text-[#0b0f0d]">Popular</Badge>
-                      )}
-                      {channel.badge && (
-                        <Badge className="text-xs border border-[var(--claw-mint)]/35 text-[var(--claw-mint)] bg-transparent">
-                          {channel.badge}
-                        </Badge>
-                      )}
+                      <p className="font-semibold">
+                        {channel.type.replace('_', ' ')}
+                      </p>
+                      <Badge className={channel.enabled ? 'bg-[var(--claw-mint)] text-[#0b0f0d]' : 'bg-white/10 text-[#cfe3db]'}>
+                        {channel.enabled ? 'Active' : 'Inactive'}
+                      </Badge>
                     </div>
-                    <p className="text-sm text-[#a5b7b0]">{channel.description}</p>
-                    {channel.helpUrl && (
-                      <a
-                        href={channel.helpUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-[var(--claw-mint)] hover:underline mt-1 inline-block"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Setup guide&nbsp;&rarr;
-                      </a>
-                    )}
+                    <p className="text-sm text-[#a5b7b0]">
+                      <span className="font-medium text-[#cfe3db]">{accessInfo.label}:</span>{' '}
+                      {accessInfo.value}
+                    </p>
                   </div>
                 </div>
-              </Card>
 
-              {/* Configuration Fields */}
-              {isSelected && channel.fields && (
-                <Card className="mt-2 p-4 border border-white/10 bg-white/5">
-                  <div className="space-y-3">
-                    {channel.fields.map(field => (
-                      <div key={field.key}>
-                        {field.type !== 'checkbox' && (
-                          <Label htmlFor={`${channel.type}-${field.key}`} className="text-sm text-[#cfe3db]">
-                            {field.label}
-                            {field.required && <span className="text-red-400 ml-1">*</span>}
-                          </Label>
-                        )}
-                        {field.type === 'textarea' ? (
-                          <textarea
-                            id={`${channel.type}-${field.key}`}
-                            placeholder={field.placeholder}
-                            value={channelConfigs[channel.type]?.[field.key] || ''}
-                            onChange={(e) => updateChannelConfig(channel.type, field.key, e.target.value)}
-                            className="w-full min-h-[100px] rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#e9f3ee] placeholder:text-[#6e827a]"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        ) : field.type === 'select' ? (
-                          <select
-                            id={`${channel.type}-${field.key}`}
-                            value={channelConfigs[channel.type]?.[field.key] || (field.options?.[0]?.value ?? '')}
-                            onChange={(e) => updateChannelConfig(channel.type, field.key, e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#e9f3ee]"
-                          >
-                            {field.options?.map(option => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        ) : field.type === 'checkbox' ? (
-                          <label className="mt-2 flex items-center gap-2 text-sm text-[#cfe3db]">
-                            <input
-                              id={`${channel.type}-${field.key}`}
-                              type="checkbox"
-                              checked={Boolean(channelConfigs[channel.type]?.[field.key])}
-                              onChange={(e) => updateChannelConfig(channel.type, field.key, e.target.checked)}
-                              onClick={(e) => e.stopPropagation()}
-                              className="h-4 w-4 rounded border-white/30 bg-white/5 text-[var(--claw-mint)]"
-                            />
-                            {field.label}
-                          </label>
-                        ) : (
-                          <Input
-                            id={`${channel.type}-${field.key}`}
-                            type={field.type}
-                            placeholder={field.placeholder}
-                            value={channelConfigs[channel.type]?.[field.key] || ''}
-                            onChange={(e) => updateChannelConfig(channel.type, field.key, e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="border-white/10 bg-white/5 text-[#e9f3ee] placeholder:text-[#6e827a]"
-                          />
-                        )}
+                <div className="flex items-center space-x-2">
+                  {accessInfo.action === 'qr' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                      onClick={() => openQr(channel.type)}
+                    >
+                      <QrCode className="h-4 w-4 mr-2" />
+                      View QR
+                    </Button>
+                  )}
+                  {accessInfo.link && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                      asChild
+                    >
+                      <a href={accessInfo.link} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open
+                      </a>
+                    </Button>
+                  )}
+                  {channel.type === 'TELEGRAM' && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                        onClick={loadPendingRequests}
+                        disabled={loadingRequests}
+                      >
+                        {loadingRequests ? 'Loading...' : 'Pending'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                        onClick={() => {
+                          setPairingChannel(channel.type)
+                          setPairingCode('')
+                          setPairingError(null)
+                          setPairingSuccess(null)
+                        }}
+                      >
+                        Pair
+                      </Button>
+                    </>
+                  )}
+                  {accessInfo.value && accessInfo.value.startsWith('@') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                      onClick={() => copyToClipboard(accessInfo.value)}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {showingQR && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <Card className="max-w-md border border-white/10 bg-[#0b0f0d] text-[#e9f3ee]">
+              <CardHeader>
+                <CardTitle>WhatsApp QR Code</CardTitle>
+                <CardDescription className="text-[#a5b7b0]">Scan with WhatsApp to connect</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-white/5 p-8 rounded-lg">
+                  <div className="w-64 h-64 bg-white/5 rounded-lg flex items-center justify-center">
+                    {qrLoading && (
+                      <p className="text-[#8fa29a] text-center">Generating QR...</p>
+                    )}
+                    {!qrLoading && qrImage && (
+                      <img src={qrImage} alt="WhatsApp QR Code" className="w-56 h-56" />
+                    )}
+                    {!qrLoading && !qrImage && (
+                      <p className="text-[#8fa29a] text-center">
+                        QR Code not available yet.
+                        <br />
+                        Try again in a few seconds.
+                      </p>
+                    )}
+                  </div>
+                  {qrError && (
+                    <p className="mt-3 text-xs text-red-400 text-center">
+                      {qrError}
+                    </p>
+                  )}
+                  {qrRaw && !qrImage && (
+                    <pre className="mt-3 max-h-32 overflow-auto text-xs text-[#8fa29a] bg-black/30 p-2 rounded border border-white/10">
+                      {qrRaw}
+                    </pre>
+                  )}
+                </div>
+                <Button
+                  className="w-full mt-4 bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
+                  onClick={() => setShowingQR(null)}
+                >
+                  Close
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {showPendingRequests && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <Card className="max-w-2xl w-full mx-4 border border-white/10 bg-[#0b0f0d] text-[#e9f3ee]">
+              <CardHeader>
+                <CardTitle>Pending Pairing Requests</CardTitle>
+                <CardDescription className="text-[#a5b7b0]">
+                  Approve users who have messaged your bot
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {pendingRequests.length === 0 ? (
+                  <p className="text-sm text-[#8fa29a] text-center py-4">
+                    No pending pairing requests
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {pendingRequests.map((req, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 border border-white/10 rounded-lg bg-white/5"
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">
+                            Code: <span className="font-mono">{req.code}</span>
+                          </p>
+                          {req.userId && (
+                            <p className="text-xs text-[#8fa29a]">
+                              User ID: {req.userId}
+                            </p>
+                          )}
+                          {req.expires && (
+                            <p className="text-xs text-[#8fa29a]">
+                              Expires: {new Date(req.expires).toLocaleString()}
+                            </p>
+                          )}
+                          {req.raw && !req.code && (
+                            <p className="text-xs text-[#8fa29a] font-mono">
+                              {req.raw}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          className="bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
+                          onClick={() => {
+                            setPairingCode(req.code || '')
+                            setPairingChannel('TELEGRAM')
+                            setShowPendingRequests(false)
+                          }}
+                          disabled={!req.code}
+                        >
+                          Approve
+                        </Button>
                       </div>
                     ))}
                   </div>
-                </Card>
-              )}
-            </div>
-          )
-        })}
-      </div>
+                )}
+                {pairingError && (
+                  <p className="text-sm text-red-400">{pairingError}</p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                    onClick={loadPendingRequests}
+                    disabled={loadingRequests}
+                  >
+                    {loadingRequests ? 'Refreshing...' : 'Refresh'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                    onClick={() => setShowPendingRequests(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-      {selectedChannels.length === 0 && (
-        <div className="text-center py-8 text-[#8fa29a]">
-          Select at least one channel to continue
-        </div>
-      )}
-    </div>
+        {pairingChannel && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <Card className="max-w-md border border-white/10 bg-[#0b0f0d] text-[#e9f3ee]">
+              <CardHeader>
+                <CardTitle>Pair Telegram</CardTitle>
+                <CardDescription className="text-[#a5b7b0]">
+                  Enter the pairing code you received, then open Telegram to connect.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-[#a5b7b0] mb-2">
+                    If you do not have access to the bot, share this code with the bot owner.
+                  </p>
+                  <input
+                    className="w-full border border-white/10 rounded-md bg-white/5 px-3 py-2 text-sm text-[#e9f3ee] placeholder:text-[#6e827a]"
+                    placeholder="Enter pairing code"
+                    value={pairingCode}
+                    onChange={(e) => setPairingCode(e.target.value)}
+                  />
+                </div>
+                {showCliCommand && cliCommand && (
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Terminal className="h-5 w-5 text-[var(--claw-mint)]" />
+                      <p className="text-sm font-medium">
+                        Run this command in Railway Terminal
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-sm bg-black/30 px-3 py-2 rounded border border-white/10 font-mono">
+                        {cliCommand}
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                        onClick={() => {
+                          copyToClipboard(cliCommand)
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="text-xs text-[#a5b7b0] space-y-1">
+                      <p className="font-medium">Steps:</p>
+                      <ol className="list-decimal list-inside space-y-1">
+                        <li>Open Railway Dashboard</li>
+                        <li>Go to your OpenClaw service - Deployments</li>
+                        <li>Click active deployment - Terminal</li>
+                        <li>Paste and run the command above</li>
+                      </ol>
+                    </div>
+                  </div>
+                )}
+                {pairingError && (
+                  <p className="text-sm text-red-400">{pairingError}</p>
+                )}
+                {pairingSuccess && (
+                  <p className="text-sm text-[var(--claw-mint)]">{pairingSuccess}</p>
+                )}
+                <Button
+                  className="w-full bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
+                  onClick={approvePairing}
+                  disabled={!pairingCode || pairingLoading}
+                >
+                  <Terminal className="h-4 w-4 mr-2" />
+                  {pairingLoading ? 'Pairing...' : showCliCommand ? 'Retry Pairing' : 'Pair Now'}
+                </Button>
+                <Button
+                  className="w-full bg-white/10 text-[#e9f3ee] hover:bg-white/15"
+                  asChild
+                  disabled={!pairingCode || !telegramUsername}
+                >
+                  <a
+                    href={telegramPairLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open Telegram
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                  onClick={() => {
+                    setPairingChannel(null)
+                    setShowCliCommand(false)
+                    setCliCommand('')
+                    setApiOutput('')
+                  }}
+                >
+                  Close
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
