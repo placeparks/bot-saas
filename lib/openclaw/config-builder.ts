@@ -29,7 +29,12 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
   const normalizeAllowlist = (value: any): string[] => {
     if (!value) return []
     if (Array.isArray(value)) return value.filter(Boolean).map(String)
-    if (typeof value === 'string') return [value]
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean)
+    }
     return []
   }
 
@@ -98,7 +103,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
       case 'WHATSAPP':
         config.channels.whatsapp = {
           allowFrom: normalizeAllowlist(channel.config.allowlist),
-          dmPolicy: userConfig.dmPolicy || 'pairing',
+          dmPolicy: channel.config.dmPolicy || userConfig.dmPolicy || 'pairing',
           ...(channel.config.groups && { groups: channel.config.groups }),
           ...(channel.config.selfChatMode && { selfChatMode: true })
         }
