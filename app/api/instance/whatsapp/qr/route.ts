@@ -29,10 +29,11 @@ export async function POST() {
     const serviceId = user.instance.containerId
 
     let host = ''
+    let resolvedName: string | null = null
     if (serviceId) {
       try {
         const railway = new RailwayClient()
-        const resolvedName = await railway.getServiceName(serviceId)
+        resolvedName = await railway.getServiceName(serviceId)
         if (resolvedName) host = `${resolvedName}.railway.internal`
       } catch {
         host = ''
@@ -54,7 +55,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Instance has no service host' }, { status: 400 })
     }
 
-    const url = `http://${host}:18800/whatsapp/qr`
+    const url = `http://${host}:18789/whatsapp/qr`
     let response: Response
     try {
       response = await fetch(url, {
@@ -63,7 +64,16 @@ export async function POST() {
       })
     } catch (error: any) {
       return NextResponse.json(
-        { error: error.message || 'Failed to reach instance', url },
+        {
+          error: error.message || 'Failed to reach instance',
+          url,
+          debug: {
+            serviceId,
+            resolvedName,
+            serviceName,
+            serviceUrl
+          }
+        },
         { status: 502 }
       )
     }
