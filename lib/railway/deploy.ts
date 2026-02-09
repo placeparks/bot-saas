@@ -43,7 +43,7 @@ function readBody(req, cb) {
   });
 }
 
-const server = http.createServer((req, res) => {
+const handler = (req, res) => {
   console.log('[pairing-server]', req.method, req.url);
 
   if (req.method === 'GET' && req.url === '/health') {
@@ -92,12 +92,23 @@ const server = http.createServer((req, res) => {
 
   res.writeHead(404);
   res.end();
+};
+
+const server = http.createServer(handler);
+const PORT = parseInt(process.env.PORT || '18800', 10);
+
+// Primary listener (public PORT on Railway)
+server.listen(PORT, '0.0.0.0', () => {
+  console.log('[pairing-server] listening on port', PORT);
 });
 
-// Listen on both IPv4 and IPv6 (Railway internal networking uses IPv6)
-server.listen(18800, () => {
-  console.log('[pairing-server] listening on port 18800 (dual-stack)');
-});
+// Secondary listener for internal calls on 18800
+if (PORT !== 18800) {
+  const internal = http.createServer(handler);
+  internal.listen(18800, '0.0.0.0', () => {
+    console.log('[pairing-server] listening on port 18800');
+  });
+}
 `.trim()
 
 /** Base64-encoded pairing server script for embedding in container env vars. */
