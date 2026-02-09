@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { RailwayClient } from '@/lib/railway/client'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -25,6 +26,7 @@ export async function POST() {
 
     const serviceName = user.instance.containerName
     const serviceUrl = user.instance.serviceUrl
+    const serviceId = user.instance.containerId
 
     let host = ''
     if (serviceName) {
@@ -35,6 +37,16 @@ export async function POST() {
         host = parsed.hostname
       } catch {
         host = ''
+      }
+    }
+
+    if (!host && serviceId) {
+      try {
+        const railway = new RailwayClient()
+        const resolvedName = await railway.getServiceName(serviceId)
+        if (resolvedName) host = `${resolvedName}.railway.internal`
+      } catch {
+        host = host
       }
     }
 
