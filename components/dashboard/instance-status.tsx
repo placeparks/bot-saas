@@ -110,7 +110,7 @@ export default function InstanceStatus({ instance, onAction, actionLoading }: In
             <Button
               variant="outline"
               size="sm"
-              className="border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)]"
+              className="border-[var(--claw-mint)]/40 text-[#216e47] hover:border-[var(--claw-mint)]/80 hover:text-[#082918]"
               onClick={() => {
                 navigator.clipboard.writeText(instance.id)
                 alert('Container ID copied!')
