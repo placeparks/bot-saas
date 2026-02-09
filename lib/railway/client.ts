@@ -157,6 +157,30 @@ export class RailwayClient {
     })
   }
 
+  /** Create a public domain for a service (HTTP). Returns the domain. */
+  async createServiceDomain(serviceId: string): Promise<string> {
+    const { serviceDomainCreate } = await this.graphql<{
+      serviceDomainCreate: { domain: string } | null
+    }>(`
+      mutation serviceDomainCreate($input: ServiceDomainCreateInput!) {
+        serviceDomainCreate(input: $input) {
+          domain
+        }
+      }
+    `, {
+      input: {
+        serviceId,
+        environmentId: this.environmentId,
+      },
+    })
+
+    if (!serviceDomainCreate?.domain) {
+      throw new Error('Railway domain creation returned empty response')
+    }
+
+    return serviceDomainCreate.domain
+  }
+
   /** Trigger a fresh deployment. */
   async redeployService(serviceId: string): Promise<void> {
     await this.graphql(`
