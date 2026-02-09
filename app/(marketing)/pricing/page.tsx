@@ -1,9 +1,14 @@
+'use client'
+
 import Link from 'next/link'
-import { Check, Bot, Sparkles, Shield, ArrowRight } from 'lucide-react'
+import { useState } from 'react'
+import { Check, Bot, Sparkles, Shield, ArrowRight, Menu, X } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
 export default function PricingPage() {
+  const [mobileOpen, setMobileOpen] = useState(false)
+
   const plans = [
     {
       name: 'Monthly',
@@ -76,7 +81,7 @@ export default function PricingPage() {
             </div>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/features" className="text-[#c7d6cf] hover:text-white transition">Features</Link>
+         {/*   <Link href="/features" className="text-[#c7d6cf] hover:text-white transition">Features</Link>*/}
             <Link href="/login" className="text-[#c7d6cf] hover:text-white transition">Login</Link>
             <Link
               href="/register"
@@ -85,7 +90,31 @@ export default function PricingPage() {
               Get Started
             </Link>
           </div>
+          <button
+            type="button"
+            className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-[var(--claw-mint)]"
+            aria-label="Toggle navigation"
+            onClick={() => setMobileOpen((prev) => !prev)}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </nav>
+        {mobileOpen && (
+          <div className="mt-4 rounded-2xl border border-white/10 bg-[#0f1713] p-4 md:hidden">
+            <div className="flex flex-col gap-3 text-sm">
+             { /*<Link href="/features" className="text-[#c7d6cf] hover:text-white transition" onClick={() => setMobileOpen(false)}>Features</Link>*/}
+              <Link href="/pricing" className="text-[#c7d6cf] hover:text-white transition" onClick={() => setMobileOpen(false)}>Pricing</Link>
+              <Link href="/login" className="text-[#c7d6cf] hover:text-white transition" onClick={() => setMobileOpen(false)}>Login</Link>
+              <Link
+                href="/register"
+                className="mt-2 inline-flex items-center justify-center rounded-full bg-[var(--claw-mint)] px-5 py-2 font-semibold text-[#0b0f0d] hover:brightness-110 transition"
+                onClick={() => setMobileOpen(false)}
+              >
+                Get Started
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="container mx-auto px-6 py-16">
