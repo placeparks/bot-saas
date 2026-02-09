@@ -208,6 +208,8 @@ export async function deployInstance(
   try {
   // --- Build env vars for the OpenClaw container ---
   const envVars = buildEnvironmentVariables(config)
+  // Force Railway public port to the pairing server (18800) for WhatsApp QR + pairing endpoints.
+  envVars.PORT = '18800'
   // Gateway token required by OpenClaw (generate a random one per instance)
   const gatewayToken = randomUUID()
   envVars.OPENCLAW_GATEWAY_TOKEN = gatewayToken
