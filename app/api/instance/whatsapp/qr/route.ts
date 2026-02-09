@@ -55,7 +55,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Instance has no service host' }, { status: 400 })
     }
 
-    const url = `http://${host}:18789/whatsapp/qr`
+    const url = `http://${host}:18800/whatsapp/qr`
     let response: Response
     try {
       response = await fetch(url, {
