@@ -20,6 +20,7 @@ const channelIcons: Record<string, any> = {
 
 interface ChannelAccessProps {
   channels: any[]
+  onChange?: (channels: any[]) => void
 }
 
 interface PairingRequest {
@@ -308,7 +309,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                      className="border-white/15 text-[#2f7351] hover:border-[var(--claw-mint)]/60"
                       onClick={() => openQr(channel.type)}
                     >
                       <QrCode className="h-4 w-4 mr-2" />
