@@ -63,7 +63,7 @@ export default function DashboardPage() {
       <div className="min-h-screen flex items-center justify-center bg-[#0b0f0d] text-[#e9f3ee]">
         <Card className="max-w-md border border-white/10 bg-white/5">
           <CardHeader>
-            <CardTitle>No Instance Found</CardTitle>
+            <CardTitle className="text-[#e9f3ee]">No Instance Found</CardTitle>
             <CardDescription className="text-[#a5b7b0]">
               You haven't deployed your AI assistant yet.
             </CardDescription>
@@ -73,7 +73,7 @@ export default function DashboardPage() {
               onClick={() => router.push('/onboard')}
               className="w-full bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
             >
-              <Bot className="mr-2 h-4 w-4" />
+              <Bot className="mr-2 h-4 w-4 text-[#a5b7b0]" />
               Deploy Your Bot
             </Button>
           </CardContent>
@@ -93,8 +93,8 @@ export default function DashboardPage() {
 
       {/* Header */}
       <header className="relative border-b border-white/10 bg-white/5">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="container mx-auto px-4 py-5 sm:px-6 sm:py-6">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex items-center space-x-3">
               <div className="h-11 w-11 rounded-2xl border border-[var(--claw-mint)]/30 bg-[var(--claw-mint)]/10 flex items-center justify-center shadow-[0_0_30px_var(--claw-glow)]">
                 <Bot className="h-6 w-6 text-[var(--claw-mint)]" />
@@ -106,7 +106,7 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex w-full items-center gap-3 sm:w-auto">
               <Badge
                 className={instance.isHealthy ? 'bg-[var(--claw-mint)] text-[#0b0f0d]' : 'bg-white/10 text-[#cfe3db]'}
               >
@@ -115,7 +115,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 onClick={() => router.push('/settings')}
-                className="border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)]"
+                className="w-full border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)] sm:w-auto"
               >
                 Settings
               </Button>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-10 relative">
+      <main className="container mx-auto px-4 py-8 sm:px-6 sm:py-10 relative">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Column */}
           <div className="lg:col-span-2 space-y-6">
