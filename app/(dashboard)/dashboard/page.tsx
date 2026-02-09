@@ -112,13 +112,13 @@ export default function DashboardPage() {
               >
                 {instance.isHealthy ? 'Online' : 'Offline'}
               </Badge>
-              <Button
+      { /*       <Button
                 variant="outline"
                 onClick={() => router.push('/settings')}
                 className="w-full border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)] sm:w-auto"
               >
                 Settings
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>
