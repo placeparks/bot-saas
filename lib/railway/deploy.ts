@@ -76,7 +76,7 @@ const handler = (req, res) => {
 
   if (req.method === 'POST' && req.url === '/whatsapp/qr') {
     // Start WhatsApp login flow and return QR data if present.
-    const r = spawnSync('openclaw', ['channels', 'login', 'whatsapp'], {
+    const r = spawnSync('openclaw', ['channels', 'login'], {
       encoding: 'utf8',
       timeout: 20000
     });
@@ -241,6 +241,21 @@ export async function deployInstance(
 
     console.log('[Railway] ✅ Service created with custom OpenClaw wrapper image')
 
+    // Create a public domain for the service (best-effort)
+    let publicDomain: string | null = null
+    try {
+      publicDomain = await railway.createServiceDomain(serviceId)
+      if (publicDomain) {
+        const accessUrl = `https://${publicDomain}`
+        await prisma.instance.update({
+          where: { id: instance.id },
+          data: { accessUrl },
+        })
+      }
+    } catch (err) {
+      console.warn('âš ï¸  Failed to create public domain (continuing):', err)
+    }
+
     // Railway private networking uses plain HTTP (no TLS)
     const serviceUrl = `http://${serviceName}.railway.internal:18789`
 
@@ -248,7 +263,7 @@ export async function deployInstance(
       where: { id: instance.id },
       data: {
         status: InstanceStatus.DEPLOYING,
-        accessUrl: null,
+        accessUrl: publicDomain ? `https://${publicDomain}` : null,
         serviceUrl,
         containerId: serviceId
       },
@@ -261,7 +276,7 @@ export async function deployInstance(
       containerId: serviceId,
       containerName: serviceName,
       port,
-      accessUrl: '',
+      accessUrl: publicDomain ? `https://${publicDomain}` : '',
       status: 'DEPLOYING',
     }
   } catch (error: any) {
