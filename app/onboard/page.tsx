@@ -21,6 +21,25 @@ const steps = [
   { id: 5, name: 'Skills', description: 'Enable features (optional)' },
 ]
 
+type ChannelConfig = { type: string; config: Record<string, any> }
+
+type OnboardConfig = {
+  templateId: string
+  plan: string
+  provider: string
+  apiKey: string
+  model: string
+  channels: ChannelConfig[]
+  webSearchEnabled: boolean
+  braveApiKey: string
+  browserEnabled: boolean
+  ttsEnabled: boolean
+  elevenlabsApiKey: string
+  canvasEnabled: boolean
+  cronEnabled: boolean
+  memoryEnabled: boolean
+}
+
 export default function OnboardPage() {
   const router = useRouter()
   const { status } = useSession()
@@ -33,7 +52,7 @@ export default function OnboardPage() {
     }
   }, [status, router])
 
-  const [config, setConfig] = useState({
+  const [config, setConfig] = useState<OnboardConfig>({
     templateId: 'scratch',
     plan: 'MONTHLY',
     provider: 'ANTHROPIC',
@@ -106,7 +125,7 @@ export default function OnboardPage() {
     }
   }
 
-  const applyTemplate = (templateId: string, preset: Record<string, any>) => {
+  const applyTemplate = (templateId: string, preset: Partial<OnboardConfig>) => {
     setConfig(prev => ({
       ...prev,
       templateId,
