@@ -29,34 +29,24 @@ export async function POST() {
     const serviceId = user.instance.containerId
 
     let host = ''
-    if (serviceName) {
-      host = `${serviceName}.railway.internal`
-    } else if (serviceUrl) {
+    if (serviceId) {
       try {
-        const parsed = new URL(serviceUrl)
-        host = parsed.hostname
+        const railway = new RailwayClient()
+        const resolvedName = await railway.getServiceName(serviceId)
+        if (resolvedName) host = `${resolvedName}.railway.internal`
       } catch {
         host = ''
       }
     }
 
-    if (!host && serviceId) {
+    if (!host && serviceName) {
+      host = `${serviceName}.railway.internal`
+    } else if (!host && serviceUrl) {
       try {
-        const railway = new RailwayClient()
-        const resolvedName = await railway.getServiceName(serviceId)
-        if (resolvedName) host = `${resolvedName}.railway.internal`
+        const parsed = new URL(serviceUrl)
+        host = parsed.hostname
       } catch {
-        host = host
-      }
-    }
-
-    if (!host && serviceId) {
-      try {
-        const railway = new RailwayClient()
-        const resolvedName = await railway.getServiceName(serviceId)
-        if (resolvedName) host = `${resolvedName}.railway.internal`
-      } catch {
-        host = host
+        host = ''
       }
     }
 
