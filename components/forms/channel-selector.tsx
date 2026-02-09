@@ -14,6 +14,7 @@ interface ChannelField {
   placeholder: string
   type: string
   required?: boolean
+  options?: { label: string; value: string }[]
 }
 
 interface Channel {
@@ -32,11 +33,25 @@ const availableChannels: Channel[] = [
     type: 'WHATSAPP',
     name: 'WhatsApp',
     icon: MessageSquare,
-    description: 'Scan QR code after deployment',
-    badge: 'No API needed',
+    description: 'Linked Devices QR after deployment (Baileys)',
+    badge: 'Web session',
     popular: true,
     fields: [
-      { key: 'allowlist', label: 'Allowed Phone Numbers (optional)', placeholder: '+1234567890, +9876543210', type: 'text' }
+      {
+        key: 'dmPolicy',
+        label: 'DM Policy',
+        placeholder: '',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Pairing (recommended)', value: 'pairing' },
+          { label: 'Allowlist', value: 'allowlist' },
+          { label: 'Open', value: 'open' },
+          { label: 'Disabled', value: 'disabled' }
+        ]
+      },
+      { key: 'allowlist', label: 'Allowed Phone Numbers (E.164)', placeholder: '+15551234567, +447700900123', type: 'text' },
+      { key: 'selfChatMode', label: 'Personal number (self-chat mode)', placeholder: '', type: 'checkbox' }
     ]
   },
   {
@@ -222,10 +237,12 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
                   <div className="space-y-3">
                     {channel.fields.map(field => (
                       <div key={field.key}>
-                        <Label htmlFor={`${channel.type}-${field.key}`} className="text-sm text-[#cfe3db]">
-                          {field.label}
-                          {field.required && <span className="text-red-400 ml-1">*</span>}
-                        </Label>
+                        {field.type !== 'checkbox' && (
+                          <Label htmlFor={`${channel.type}-${field.key}`} className="text-sm text-[#cfe3db]">
+                            {field.label}
+                            {field.required && <span className="text-red-400 ml-1">*</span>}
+                          </Label>
+                        )}
                         {field.type === 'textarea' ? (
                           <textarea
                             id={`${channel.type}-${field.key}`}
@@ -235,6 +252,32 @@ export default function ChannelSelector({ channels, onChange }: ChannelSelectorP
                             className="w-full min-h-[100px] rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#e9f3ee] placeholder:text-[#6e827a]"
                             onClick={(e) => e.stopPropagation()}
                           />
+                        ) : field.type === 'select' ? (
+                          <select
+                            id={`${channel.type}-${field.key}`}
+                            value={channelConfigs[channel.type]?.[field.key] || (field.options?.[0]?.value ?? '')}
+                            onChange={(e) => updateChannelConfig(channel.type, field.key, e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#e9f3ee]"
+                          >
+                            {field.options?.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        ) : field.type === 'checkbox' ? (
+                          <label className="mt-2 flex items-center gap-2 text-sm text-[#cfe3db]">
+                            <input
+                              id={`${channel.type}-${field.key}`}
+                              type="checkbox"
+                              checked={Boolean(channelConfigs[channel.type]?.[field.key])}
+                              onChange={(e) => updateChannelConfig(channel.type, field.key, e.target.checked)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="h-4 w-4 rounded border-white/30 bg-white/5 text-[var(--claw-mint)]"
+                            />
+                            {field.label}
+                          </label>
                         ) : (
                           <Input
                             id={`${channel.type}-${field.key}`}
