@@ -378,13 +378,13 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                 <CardDescription className="text-[#a5b7b0]">Scan with WhatsApp to connect</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="bg-white/5 p-8 rounded-lg">
-                  <div className="w-64 h-64 bg-white/5 rounded-lg flex items-center justify-center">
+                <div className="bg-white/5 p-6 rounded-lg">
+                  <div className="bg-white/5 rounded-lg border border-white/10 p-3 flex items-center justify-center">
                     {qrLoading && (
                       <p className="text-[#8fa29a] text-center">Generating QR...</p>
                     )}
                     {!qrLoading && qrImage && (
-                      <img src={qrImage} alt="WhatsApp QR Code" className="w-56 h-56" />
+                      <img src={qrImage} alt="WhatsApp QR Code" className="w-72 h-72" />
                     )}
                     {!qrLoading && !qrImage && !qrRaw && (
                       <p className="text-[#8fa29a] text-center">
@@ -393,18 +393,16 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                         Try again in a few seconds.
                       </p>
                     )}
+                    {!qrLoading && !qrImage && qrRaw && (
+                      <pre className="max-h-[420px] w-full overflow-auto text-[10px] leading-[10px] text-[#cfe3db] font-mono">
+                        {qrRaw}
+                      </pre>
+                    )}
                   </div>
                   {qrError && (
                     <p className="mt-3 text-xs text-red-400 text-center">
                       {qrError}
                     </p>
-                  )}
-                  {qrRaw && !qrImage && (
-                    <div className="mt-3 bg-black/30 rounded border border-white/10 p-2">
-                      <pre className="max-h-[360px] overflow-auto text-[10px] leading-[10px] text-[#cfe3db] font-mono">
-                        {qrRaw}
-                      </pre>
-                    </div>
                   )}
                 </div>
                 <Button
