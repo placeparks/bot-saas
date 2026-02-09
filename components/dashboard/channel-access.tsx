@@ -403,7 +403,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                        className="border-white/15 text-[#2b5e45] hover:border-[var(--claw-mint)]/60"
                         onClick={loadPendingRequests}
                         disabled={loadingRequests}
                       >
@@ -412,7 +412,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                        className="border-white/15 text-[#2b5e45] hover:border-[var(--claw-mint)]/60"
                         onClick={() => {
                           setPairingChannel(channel.type)
                           setPairingCode('')
@@ -428,7 +428,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60"
+                      className="border-white/15 text-[#2b5e45] hover:border-[var(--claw-mint)]/60"
                       onClick={() => copyToClipboard(accessInfo.value)}
                     >
                       <Copy className="h-4 w-4" />
