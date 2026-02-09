@@ -228,15 +228,6 @@ export async function deployInstance(
       envVars
     )
 
-    // Ensure the service starts our pairing server + gateway script
-    try {
-      const startCommand = buildRailwayStartCommand()
-      await railway.updateServiceInstance(serviceId, { startCommand })
-      // Apply the updated start command immediately
-      await railway.redeployService(serviceId)
-    } catch (err) {
-      console.warn('⚠️ Failed to update start command (continuing):', err)
-    }
 
     // Persist the Railway service ID immediately
     try {
