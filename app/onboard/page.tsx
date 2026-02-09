@@ -9,14 +9,16 @@ import { Button } from '@/components/ui/button'
 import { Check, Sparkles, Shield, ArrowRight, ArrowLeft } from 'lucide-react'
 import PlanSelection from '@/components/forms/plan-selection'
 import ProviderConfig from '@/components/forms/provider-config'
-import ChannelSelector from '@/components/forms/channel-selector'
+import ChannelSelector from '../../components/forms/channel-selector'
 import SkillsConfig from '@/components/forms/skills-config'
+import TemplateSelection from '@/components/forms/template-selection'
 
 const steps = [
-  { id: 1, name: 'Choose Plan', description: 'Select your subscription' },
-  { id: 2, name: 'AI Provider', description: 'Configure your AI model' },
-  { id: 3, name: 'Channels', description: 'Select messaging platforms' },
-  { id: 4, name: 'Skills', description: 'Enable features (optional)' },
+  { id: 1, name: 'Template', description: 'Choose a starting point' },
+  { id: 2, name: 'Choose Plan', description: 'Select your subscription' },
+  { id: 3, name: 'AI Provider', description: 'Configure your AI model' },
+  { id: 4, name: 'Channels', description: 'Select messaging platforms' },
+  { id: 5, name: 'Skills', description: 'Enable features (optional)' },
 ]
 
 export default function OnboardPage() {
@@ -32,6 +34,7 @@ export default function OnboardPage() {
   }, [status, router])
 
   const [config, setConfig] = useState({
+    templateId: 'scratch',
     plan: 'MONTHLY',
     provider: 'ANTHROPIC',
     apiKey: '',
@@ -103,6 +106,15 @@ export default function OnboardPage() {
     }
   }
 
+  const applyTemplate = (templateId: string, preset: Record<string, any>) => {
+    setConfig(prev => ({
+      ...prev,
+      templateId,
+      ...preset,
+      channels: Array.isArray(preset.channels) ? preset.channels : prev.channels
+    }))
+  }
+
   return (
     <div
       className="min-h-screen bg-[#0b0f0d] text-[#e9f3ee] [--claw-ink:#0b0f0d] [--claw-mint:#7df3c6] [--claw-ember:#ffb35a] [--claw-glow:rgba(125,243,198,0.28)] py-12"
@@ -122,7 +134,7 @@ export default function OnboardPage() {
           </div>
           <h1 className="mt-6 text-4xl md:text-5xl font-semibold">Build your ClawOS agent</h1>
           <p className="mt-3 text-[#c7d6cf]">
-            Four steps. Clear choices. We handle the deploy.
+            Five steps. Clear choices. We handle the deploy.
           </p>
         </div>
 
@@ -169,24 +181,30 @@ export default function OnboardPage() {
             </CardHeader>
             <CardContent>
               {currentStep === 1 && (
+                <TemplateSelection
+                  selectedTemplate={config.templateId}
+                  onSelect={applyTemplate}
+                />
+              )}
+              {currentStep === 2 && (
                 <PlanSelection
                   selectedPlan={config.plan}
                   onSelect={(plan) => updateConfig({ plan })}
                 />
               )}
-              {currentStep === 2 && (
+              {currentStep === 3 && (
                 <ProviderConfig
                   config={config}
                   onChange={updateConfig}
                 />
               )}
-              {currentStep === 3 && (
+              {currentStep === 4 && (
                 <ChannelSelector
                   channels={config.channels}
                   onChange={(channels) => updateConfig({ channels })}
                 />
               )}
-              {currentStep === 4 && (
+              {currentStep === 5 && (
                 <SkillsConfig
                   config={config}
                   onChange={updateConfig}
@@ -204,19 +222,23 @@ export default function OnboardPage() {
               </CardHeader>
               <CardContent className="space-y-4 text-sm text-[#cfe3db]">
                 <div className="flex items-center justify-between">
+                  <span className="text-[#8fa29a]">Template</span>
+                  <span className="font-semibold capitalize">{config.templateId?.replace('-', ' ')}</span>
+                </div>
+                <div className="flex items-center justify-between">
                   <span className="text-[#8fa29a]">Plan</span>
                   <span className="font-semibold">{config.plan}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[#8fa29a]">Provider</span>
                   <span className="font-semibold">
-                    {currentStep >= 2 ? providerLabel : 'Select in step 2'}
+                    {currentStep >= 3 ? providerLabel : 'Select in step 3'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[#8fa29a]">Channels</span>
                   <span className="font-semibold">
-                    {currentStep >= 3 ? (config.channels.length || 0) : 'Select in step 3'}
+                    {currentStep >= 4 ? (config.channels.length || 0) : 'Select in step 4'}
                   </span>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-[#a5b7b0]">
