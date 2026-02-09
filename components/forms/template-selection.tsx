@@ -3,7 +3,7 @@
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Headset, User, Hash, Briefcase, Sparkles } from 'lucide-react'
+import { Headphones, User, Hash, Briefcase, Sparkles } from 'lucide-react'
 
 const templates = [
   {
@@ -11,7 +11,7 @@ const templates = [
     name: 'Customer Support Bot',
     description: 'A helpful support agent that answers questions, resolves issues, and escalates when needed.',
     badge: 'Popular',
-    icon: Headset,
+    icon: Headphones,
     chips: ['WHATSAPP', 'TELEGRAM', 'Memory'],
     preset: {
       provider: 'ANTHROPIC',
