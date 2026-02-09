@@ -351,7 +351,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
             return (
               <div
                 key={index}
-                className="flex items-center justify-between p-4 border border-white/10 rounded-lg bg-white/5 hover:border-[var(--claw-mint)]/30 transition"
+                className="flex flex-col gap-4 p-4 border border-white/10 rounded-lg bg-white/5 hover:border-[var(--claw-mint)]/30 transition sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex items-center space-x-4 flex-1">
                   <div className="p-3 rounded-lg border border-white/10 bg-white/5">
@@ -373,7 +373,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {accessInfo.action === 'qr' && (
                     <Button
                       variant="outline"
