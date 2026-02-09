@@ -27,6 +27,7 @@ export async function POST() {
     const serviceName = user.instance.containerName
     const serviceUrl = user.instance.serviceUrl
     const serviceId = user.instance.containerId
+    const accessUrl = user.instance.accessUrl
 
     let host = ''
     let resolvedName: string | null = null
@@ -56,7 +57,9 @@ export async function POST() {
     }
 
     let publicUrl: string | null = null
-    if (serviceUrl && !serviceUrl.includes('railway.internal')) {
+    if (accessUrl) {
+      publicUrl = accessUrl
+    } else if (serviceUrl && !serviceUrl.includes('railway.internal')) {
       publicUrl = serviceUrl
     } else if (serviceId) {
       try {
@@ -116,7 +119,8 @@ export async function POST() {
             resolvedName,
             serviceName,
             serviceUrl,
-            publicUrl
+            publicUrl,
+            accessUrl
           }
         },
         { status: 502 }
