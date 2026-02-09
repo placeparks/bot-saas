@@ -34,6 +34,10 @@ function extractQr(raw) {
   return null;
 }
 
+function hasAsciiQr(raw) {
+  return typeof raw === 'string' && raw.includes('▄▄') && raw.includes('█');
+}
+
 function readBody(req, cb) {
   let buf = '';
   req.on('data', (c) => { buf += c; });
@@ -82,7 +86,7 @@ const handler = (req, res) => {
     });
     const raw = [r.stdout || '', r.stderr || ''].join('\\n').trim();
     const qr = extractQr(raw);
-    const ok = Boolean(qr) || r.status === 0;
+    const ok = Boolean(qr) || hasAsciiQr(raw) || r.status === 0;
     return send(res, ok ? 200 : 500, {
       success: ok,
       qr,
