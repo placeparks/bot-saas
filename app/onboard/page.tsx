@@ -145,26 +145,26 @@ export default function OnboardPage() {
         <div className="absolute left-1/2 top-32 h-56 w-56 -translate-x-1/2 rounded-full bg-white/5 blur-3xl" />
       </div>
 
-      <div className="container mx-auto px-6 max-w-6xl relative">
+      <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8 sm:mb-12">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--claw-mint)]/30 bg-[var(--claw-mint)]/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-[var(--claw-mint)]">
             <Sparkles className="h-3 w-3" /> onboarding
           </div>
-          <h1 className="mt-6 text-4xl md:text-5xl font-semibold">Build your ClawOS agent</h1>
+          <h1 className="mt-6 text-3xl sm:text-4xl md:text-5xl font-semibold">Build your ClawOS agent</h1>
           <p className="mt-3 text-[#c7d6cf]">
             Five steps. Clear choices. We handle the deploy.
           </p>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-10">
-          <div className="flex justify-between items-center gap-2">
+        <div className="mb-8 sm:mb-10">
+          <div className="flex gap-4 overflow-x-auto pb-2 sm:overflow-visible sm:flex-wrap sm:justify-between sm:items-center">
             {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center flex-1">
-                <div className="flex flex-col items-center flex-1">
+              <div key={step.id} className="flex items-center shrink-0 sm:shrink">
+                <div className="flex flex-col items-center min-w-[120px] sm:min-w-0">
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold transition-colors ${
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-semibold transition-colors ${
                       currentStep > step.id
                         ? 'bg-[var(--claw-mint)] text-[#0b0f0d]'
                         : currentStep === step.id
@@ -175,13 +175,13 @@ export default function OnboardPage() {
                     {currentStep > step.id ? <Check className="h-6 w-6" /> : step.id}
                   </div>
                   <div className="mt-2 text-center">
-                    <p className="font-semibold text-sm">{step.name}</p>
-                    <p className="text-xs text-[#8fa29a]">{step.description}</p>
+                    <p className="font-semibold text-xs sm:text-sm">{step.name}</p>
+                    <p className="hidden sm:block text-[11px] sm:text-xs text-[#8fa29a]">{step.description}</p>
                   </div>
                 </div>
                 {index < steps.length - 1 && (
                   <div
-                    className={`h-1 flex-1 mx-2 rounded-full transition-colors ${
+                    className={`hidden sm:block h-1 flex-1 mx-2 rounded-full transition-colors ${
                       currentStep > step.id ? 'bg-[var(--claw-mint)]' : 'bg-white/10'
                     }`}
                   />
@@ -281,19 +281,19 @@ export default function OnboardPage() {
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)]"
+            className="w-full sm:w-auto border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)]"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <div className="flex items-center gap-3 text-xs text-[#8fa29a]">
+          <div className="order-last w-full sm:order-none sm:w-auto flex items-center gap-3 text-xs text-[#8fa29a]">
             <Shield className="h-4 w-4 text-[var(--claw-mint)]" />
             Secure checkout. Cancel any time.
           </div>
           <Button
             onClick={nextStep}
             disabled={loading}
-            className="bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
+            className="w-full sm:w-auto bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
           >
             {loading ? 'Processing...' : currentStep === steps.length ? 'Proceed to Payment' : 'Next Step'}
             {!loading && <ArrowRight className="h-4 w-4 ml-2" />}
