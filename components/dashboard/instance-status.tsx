@@ -44,7 +44,7 @@ export default function InstanceStatus({ instance, onAction, actionLoading }: In
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-center space-x-3">
             <div className={`p-3 rounded-lg border border-white/10 ${instance.isHealthy ? 'bg-[var(--claw-mint)]/10' : 'bg-red-500/10'}`}>
               <Activity className={`h-5 w-5 ${instance.isHealthy ? 'text-[var(--claw-mint)]' : 'text-red-400'}`} />
