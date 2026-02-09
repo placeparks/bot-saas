@@ -201,6 +201,19 @@ export class RailwayClient {
     return match?.node.id ?? null
   }
 
+  /** Get service name by service ID. */
+  async getServiceName(serviceId: string): Promise<string | null> {
+    const { service } = await this.graphql<{ service: { name: string } | null }>(`
+      query service($id: String!) {
+        service(id: $id) {
+          name
+        }
+      }
+    `, { id: serviceId })
+
+    return service?.name ?? null
+  }
+
   /** Return the most recent deployment for a service. */
   async getLatestDeployment(serviceId: string): Promise<Deployment | null> {
     const { service } = await this.graphql<{
