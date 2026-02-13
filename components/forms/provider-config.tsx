@@ -130,11 +130,13 @@ export default function ProviderConfig({ config, onChange }: ProviderConfigProps
           value={config.model}
           onChange={(e) => onChange({ model: e.target.value })}
         >
-          <option value="">Default (Recommended)</option>
+          <option value="" className="text-black bg-white">
+            Default (Recommended)
+          </option>
           {providers
             .find(p => p.id === config.provider)
             ?.models.map(model => (
-              <option key={model.id} value={model.id}>
+              <option key={model.id} value={model.id} className="text-black bg-white">
                 {model.name}
               </option>
             ))}
