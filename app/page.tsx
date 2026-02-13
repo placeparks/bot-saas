@@ -98,7 +98,7 @@ export default function Home() {
               <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 {[
                   { label: 'Deploy time', value: 'Under 5 min' },
-                  { label: 'Channels', value: '8+' },
+                  { label: 'Channels', value: '2' },
                   { label: 'Uptime', value: '99.9%' }
                 ].map((stat) => (
                   <div
@@ -121,7 +121,8 @@ export default function Home() {
                 <div className="mt-6 space-y-4 text-sm text-[#c7d6cf]">
                   {[
                     { icon: Layers, title: 'Deploy Instance', detail: 'Isolated container + private token' },
-                    { icon: Radar, title: 'Pair Channels', detail: 'Telegram, WhatsApp, Discord, Slack' },
+                    // { icon: Radar, title: 'Pair Channels', detail: 'Telegram, WhatsApp, Discord, Slack' },
+                    { icon: Radar, title: 'Pair Channels', detail: 'Telegram, Discord' },
                     { icon: Shield, title: 'Secure Keys', detail: 'Secrets never leave your scope' }
                   ].map((item) => (
                     <div key={item.title} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -159,7 +160,8 @@ export default function Home() {
             {
               icon: MessageSquare,
               title: 'Channel‑ready',
-              copy: 'WhatsApp, Telegram, Discord, Slack and more—wire them once and move on.'
+              // copy: 'WhatsApp, Telegram, Discord, Slack and more—wire them once and move on.'
+              copy: 'Telegram and Discord—wire them once and move on.'
             },
             {
               icon: Shield,
@@ -192,7 +194,16 @@ export default function Home() {
             </Link>
           </div>
           <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['WhatsApp', 'Telegram', 'Discord', 'Slack', 'Signal', 'Google Chat', 'Matrix', 'MS Teams'].map((platform) => (
+            {[
+              /* 'WhatsApp', */
+              'Telegram',
+              'Discord',
+              /* 'Slack', */
+              /* 'Signal', */
+              /* 'Google Chat', */
+              /* 'Matrix', */
+              /* 'MS Teams' */
+            ].map((platform) => (
               <div key={platform} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[#cfe3db]">
                 {platform}
               </div>
