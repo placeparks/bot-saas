@@ -29,7 +29,7 @@ const statusConfig: Record<InstanceStatusEnum, { label: string; color: string; d
   },
   STOPPED: {
     label: 'STOPPED',
-    color: 'text-white/30',
+    color: 'text-red-500/30',
     dotColor: 'bg-white/20',
     glow: '',
   },
@@ -143,7 +143,7 @@ export default function InstanceStatus({ instance, onAction, actionLoading }: In
             <h3 className="text-lg font-bold">
               {isOnline ? 'Agent Operational' : 'Agent Offline'}
             </h3>
-            <p className="text-xs text-white/30 font-mono mt-0.5">
+            <p className="text-xs text-red-500/30 font-mono mt-0.5">
               {isOnline
                 ? 'All systems nominal. Listening on configured channels.'
                 : 'Instance is not responding. Try restarting.'}
