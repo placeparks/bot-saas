@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Bot, Shield, Sparkles, Check } from 'lucide-react'
+import { Shield, Sparkles, Check } from 'lucide-react'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -74,112 +75,112 @@ export default function RegisterPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#0b0f0d] text-[#e9f3ee] [--claw-ink:#0b0f0d] [--claw-mint:#7df3c6] [--claw-ember:#ffb35a] [--claw-glow:rgba(125,243,198,0.28)] flex items-center justify-center p-6"
-      style={{ fontFamily: "'Space Grotesk', 'Sora', 'Poppins', sans-serif" }}
+      className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-6"
+      style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -right-16 h-56 w-56 rounded-full bg-[var(--claw-mint)]/12 blur-3xl" />
-        <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-[var(--claw-ember)]/12 blur-3xl" />
+        <div className="absolute -top-24 -right-16 h-56 w-56 rounded-full bg-red-500/8 blur-[80px]" />
+        <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-red-500/5 blur-[80px]" />
       </div>
 
-      <Card className="relative w-full max-w-md border border-white/10 bg-white/5 text-[#e9f3ee] shadow-[0_40px_120px_rgba(0,0,0,0.45)]">
+      <Card className="relative w-full max-w-md border border-red-500/15 bg-white/[0.02] text-white shadow-[0_0_60px_rgba(0,0,0,0.5)]">
         <CardHeader className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--claw-mint)]/30 bg-[var(--claw-mint)]/10 shadow-[0_0_30px_var(--claw-glow)]">
-            <Bot className="h-7 w-7 text-[var(--claw-mint)]" />
+          <div className="mx-auto mb-2">
+            <Image src="/openclaw_icon.png" alt="Claw Club" width={48} height={48} className="drop-shadow-[0_0_15px_rgba(220,38,38,0.3)]" />
           </div>
-          <CardTitle className="mt-5 text-2xl">Create your ClawOS account</CardTitle>
-          <CardDescription className="text-[#a5b7b0]">
+          <CardTitle className="mt-3 text-2xl font-bold">Create your <span className="text-red-500">Claw Club</span> account</CardTitle>
+          <CardDescription className="text-white/40 font-mono text-xs">
             Launch your private OpenClaw gateway in minutes.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3">
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
                 <p className="text-sm text-red-200">{error}</p>
               </div>
             )}
 
             <div>
-              <Label htmlFor="name" className="text-sm text-[#cfe3db]">Name</Label>
+              <Label htmlFor="name" className="text-sm text-white/60">Name</Label>
               <Input
                 id="name"
                 name="name"
                 type="text"
                 placeholder="Your name"
                 required
-                className="mt-2 border-white/10 bg-white/5 text-[#e9f3ee] placeholder:text-[#6e827a]"
+                className="mt-2 border-red-500/15 bg-white/5 text-white placeholder:text-white/20 font-mono text-sm"
               />
             </div>
 
             <div>
-              <Label htmlFor="email" className="text-sm text-[#cfe3db]">Email</Label>
+              <Label htmlFor="email" className="text-sm text-white/60">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 placeholder="you@example.com"
                 required
-                className="mt-2 border-white/10 bg-white/5 text-[#e9f3ee] placeholder:text-[#6e827a]"
+                className="mt-2 border-red-500/15 bg-white/5 text-white placeholder:text-white/20 font-mono text-sm"
               />
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-sm text-[#cfe3db]">Password</Label>
+              <Label htmlFor="password" className="text-sm text-white/60">Password</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 placeholder="••••••••"
                 required
-                className="mt-2 border-white/10 bg-white/5 text-[#e9f3ee] placeholder:text-[#6e827a]"
+                className="mt-2 border-red-500/15 bg-white/5 text-white placeholder:text-white/20 font-mono text-sm"
               />
-              <p className="mt-2 text-xs text-[#8fa29a] flex items-center gap-2">
-                <Check className="h-3 w-3 text-[var(--claw-mint)]" /> At least 8 characters
+              <p className="mt-2 text-[10px] text-white/25 flex items-center gap-2 font-mono">
+                <Check className="h-3 w-3 text-red-500/50" /> At least 8 characters
               </p>
             </div>
 
             <div>
-              <Label htmlFor="confirmPassword" className="text-sm text-[#cfe3db]">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-sm text-white/60">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
                 placeholder="••••••••"
                 required
-                className="mt-2 border-white/10 bg-white/5 text-[#e9f3ee] placeholder:text-[#6e827a]"
+                className="mt-2 border-red-500/15 bg-white/5 text-white placeholder:text-white/20 font-mono text-sm"
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full rounded-full bg-[var(--claw-mint)] text-[#0b0f0d] font-semibold hover:brightness-110"
+              className="w-full rounded-lg bg-red-600 text-white font-semibold hover:bg-red-500 transition-all shadow-[0_0_20px_rgba(220,38,38,0.2)]"
               disabled={loading}
             >
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
 
-            <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-[#a5b7b0]">
+            <div className="grid gap-3 rounded-lg border border-red-500/10 bg-white/[0.02] p-4 text-xs text-white/30 font-mono">
               <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-[var(--claw-mint)]" />
+                <Shield className="h-4 w-4 text-red-500/50" />
                 Your keys stay private and encrypted.
               </div>
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-[var(--claw-mint)]" />
+                <Sparkles className="h-4 w-4 text-red-500/50" />
                 Pair channels after the first deploy.
               </div>
             </div>
 
             <div className="text-center text-sm">
-              <span className="text-[#a5b7b0]">Already have an account? </span>
-              <Link href="/login" className="text-[var(--claw-mint)] hover:underline">
+              <span className="text-white/30">Already have an account? </span>
+              <Link href="/login" className="text-red-500 hover:underline">
                 Sign in
               </Link>
             </div>
 
             <div className="text-center text-sm">
-              <Link href="/" className="text-[#8fa29a] hover:underline">
-                ← Back to home
+              <Link href="/" className="text-white/20 hover:text-red-500 transition-colors">
+                &larr; Back to home
               </Link>
             </div>
           </form>
