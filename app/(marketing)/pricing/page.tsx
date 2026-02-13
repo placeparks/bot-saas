@@ -18,7 +18,8 @@ export default function PricingPage() {
       features: [
         'All features included',
         'Unlimited messages',
-        'All channels (WhatsApp, Telegram, Discord, etc.)',
+        // 'All channels (WhatsApp, Telegram, Discord, etc.)',
+        'Telegram + Discord channels',
         'Skills & extensions',
         'Web search & browser',
         '24/7 support'
@@ -36,7 +37,8 @@ export default function PricingPage() {
       features: [
         'All features included',
         'Unlimited messages',
-        'All channels (WhatsApp, Telegram, Discord, etc.)',
+        // 'All channels (WhatsApp, Telegram, Discord, etc.)',
+        'Telegram + Discord channels',
         'Skills & extensions',
         'Web search & browser',
         'Priority support',
@@ -54,7 +56,8 @@ export default function PricingPage() {
       features: [
         'All features included',
         'Unlimited messages',
-        'All channels (WhatsApp, Telegram, Discord, etc.)',
+        // 'All channels (WhatsApp, Telegram, Discord, etc.)',
+        'Telegram + Discord channels',
         'Skills & extensions',
         'Web search & browser',
         'Priority support',
@@ -133,7 +136,8 @@ export default function PricingPage() {
               <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-[#a5b7b0]">
                 <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-[var(--claw-mint)]" /> Private containers</div>
                 <div className="flex items-center gap-2"><Check className="h-4 w-4 text-[var(--claw-mint)]" /> Unlimited messages</div>
-                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-[var(--claw-mint)]" /> All channels</div>
+                {/* <div className="flex items-center gap-2"><Check className="h-4 w-4 text-[var(--claw-mint)]" /> All channels</div> */}
+                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-[var(--claw-mint)]" /> Telegram + Discord</div>
               </div>
             </div>
             <div className="rounded-[26px] border border-white/10 bg-white/5 p-6 text-sm text-[#cfe3db]">
