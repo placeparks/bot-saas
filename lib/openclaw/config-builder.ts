@@ -182,42 +182,33 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
     }
   })
 
-  // Add skills configuration
-  config.skills = {
-    entries: {}
-  }
-
+  // TTS → messages.tts
   if (userConfig.ttsEnabled && userConfig.elevenlabsApiKey) {
-    config.tts = {
-      enabled: true,
-      provider: 'elevenlabs',
-      elevenlabs: {
-        apiKey: userConfig.elevenlabsApiKey
+    config.messages = {
+      ...config.messages,
+      tts: {
+        auto: 'inbound',
+        provider: 'elevenlabs',
+        elevenlabs: {
+          enabled: true,
+          apiKey: userConfig.elevenlabsApiKey
+        }
       }
     }
   }
 
+  // Browser → tools.web.fetch
   if (userConfig.browserEnabled) {
-    config.browser = {
+    config.tools.web.fetch = {
       enabled: true
     }
   }
 
-  if (userConfig.canvasEnabled) {
-    config.canvas = {
-      enabled: true
-    }
-  }
-
-  if (userConfig.cronEnabled) {
-    config.cron = {
-      enabled: true
-    }
-  }
-
+  // Memory search → agents.defaults.memorySearch
   if (userConfig.memoryEnabled) {
-    config.memory = {
-      enabled: true
+    config.agents.defaults.memorySearch = {
+      enabled: true,
+      sources: ['memory', 'sessions']
     }
   }
 
