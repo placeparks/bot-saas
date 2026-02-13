@@ -7,6 +7,54 @@ import { prisma } from '@/lib/prisma'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+async function fetchTelegramUsername(botToken: string): Promise<string | null> {
+  if (!botToken) return null
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/getMe`, {
+      method: 'GET',
+      cache: 'no-store'
+    })
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    if (data?.ok && data?.result?.username) {
+      return `@${data.result.username}`
+    }
+  } catch {
+    // Non-fatal: proceed without username enrichment.
+  }
+
+  return null
+}
+
+async function enrichChannelConfig(config: any) {
+  if (!config?.channels || !Array.isArray(config.channels)) return config
+
+  const channels = await Promise.all(
+    config.channels.map(async (channel: any) => {
+      if (channel?.type !== 'TELEGRAM') return channel
+
+      const botToken = channel?.config?.botToken
+      if (!botToken) return channel
+
+      const botUsername = await fetchTelegramUsername(botToken)
+      if (!botUsername) return channel
+
+      return {
+        ...channel,
+        config: {
+          ...channel.config,
+          botUsername
+        }
+      }
+    })
+  )
+
+  return { ...config, channels }
+}
+
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
@@ -58,10 +106,12 @@ export async function POST(req: Request) {
       customerId = customer.id
     }
 
+    const enrichedConfig = await enrichChannelConfig(config)
+
     // Store config in database (we'll use it after payment success)
     await prisma.user.update({
       where: { id: user.id },
-      data: { pendingConfig: config }
+      data: { pendingConfig: enrichedConfig }
     })
 
     // Create Stripe checkout session
