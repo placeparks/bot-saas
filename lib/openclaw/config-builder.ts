@@ -48,7 +48,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
           .map(v => v.trim())
           .filter(Boolean)
     if (ids.length === 0) return undefined
-    return Object.fromEntries(ids.map(id => [id, { enabled: true }]))
+    return Object.fromEntries(ids.map(id => [id, {}]))
   }
 
   const config: any = {
