@@ -119,7 +119,7 @@ export default function TemplateSelection({ selectedTemplate, onSelect }: Templa
                   {template.chips.map((chip) => (
                     <span
                       key={chip}
-                      className="rounded-full border border-red-500/15 bg-red-500/[0.04] px-3 py-1 text-xs text-white/50 font-mono"
+                      className="rounded-full border border-red-500/15 bg-red-500/[0.04] px-3 py-1 text-xs text-red-500/50 font-mono"
                     >
                       {chip}
                     </span>
@@ -134,7 +134,7 @@ export default function TemplateSelection({ selectedTemplate, onSelect }: Templa
                   className={`transition-all duration-300 ${
                     isSelected
                       ? 'border-red-500/40 text-red-400 bg-red-500/5'
-                      : 'border-white/15 text-white/50 hover:border-red-500/40 hover:text-red-400'
+                      : 'border-white/15 text-red-500/50 hover:border-red-500/40 hover:text-black-400'
                   }`}
                 >
                   {isSelected ? (
