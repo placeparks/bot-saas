@@ -1,8 +1,7 @@
 'use client'
 
-import { Check } from 'lucide-react'
+import { Check, Flame } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 
 const plans = [
   {
@@ -10,7 +9,7 @@ const plans = [
     name: 'Monthly',
     price: 29,
     period: '/month',
-    description: 'Perfect for trying out',
+    description: 'Try it out. Cancel anytime.',
     features: ['All features included', 'Unlimited messages', 'All channels', '24/7 support']
   },
   {
@@ -20,9 +19,9 @@ const plans = [
     pricePerMonth: 25,
     period: '/3 months',
     discount: 13,
-    badge: 'Save 13%',
-    description: 'Best for short-term projects',
-    features: ['All features included', 'Unlimited messages', 'All channels', '24/7 support', 'Save $12']
+    badge: 'POPULAR',
+    description: 'Most popular. Save $12.',
+    features: ['All features included', 'Unlimited messages', 'All channels', 'Priority support', 'Save $12']
   },
   {
     id: 'YEARLY',
@@ -31,9 +30,9 @@ const plans = [
     pricePerMonth: 24.92,
     period: '/year',
     discount: 14,
-    badge: 'Best Value',
+    badge: 'BEST VALUE',
     popular: true,
-    description: 'Best value for long-term use',
+    description: 'Best value. Serious members.',
     features: ['All features included', 'Unlimited messages', 'All channels', 'Priority support', 'Save $49']
   }
 ]
@@ -45,53 +44,62 @@ interface PlanSelectionProps {
 
 export default function PlanSelection({ selectedPlan, onSelect }: PlanSelectionProps) {
   return (
-    <div className="grid md:grid-cols-3 gap-6">
-      {plans.map(plan => (
-        <Card
-          key={plan.id}
-          className={`relative cursor-pointer border border-white/10 bg-white/5 transition-all ${
-            selectedPlan === plan.id
-              ? 'ring-2 ring-[var(--claw-mint)] shadow-[0_20px_60px_rgba(0,0,0,0.35)]'
-              : 'hover:border-[var(--claw-mint)]/30'
-          } ${plan.popular ? 'border-[var(--claw-mint)]/40' : ''}`}
-          onClick={() => onSelect(plan.id)}
-        >
-          {plan.badge && (
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <Badge className="bg-[var(--claw-mint)] text-[#0b0f0d]">{plan.badge}</Badge>
-            </div>
-          )}
+    <div className="grid md:grid-cols-3 gap-5">
+      {plans.map((plan, i) => {
+        const isSelected = selectedPlan === plan.id
+        return (
+          <Card
+            key={plan.id}
+            className={`relative cursor-pointer border transition-all duration-300 ${
+              isSelected
+                ? 'border-red-500/50 bg-red-500/[0.04] ring-2 ring-red-500/40 shadow-[0_0_30px_rgba(220,38,38,0.15)]'
+                : plan.popular
+                ? 'border-red-500/25 bg-white/[0.02] hover:border-red-500/50'
+                : 'border-white/10 bg-white/[0.02] hover:border-red-500/30'
+            }`}
+            onClick={() => onSelect(plan.id)}
+          >
+            {plan.badge && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-red-600 text-white text-[10px] font-mono font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                  {plan.badge}
+                </span>
+              </div>
+            )}
 
-          <div className="p-6">
-            <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-            <div className="mb-4">
-              <span className="text-4xl font-bold">${plan.price}</span>
-              <span className="text-[#a5b7b0]">{plan.period}</span>
+            <div className="p-6">
+              <div className="text-xs font-mono text-red-500/60 uppercase tracking-wider">{plan.name}</div>
+              <div className="mt-3 flex items-end gap-1">
+                <span className="text-4xl font-bold text-white">${plan.price}</span>
+                <span className="text-sm text-white/30 font-mono mb-1">{plan.period}</span>
+              </div>
               {plan.pricePerMonth && (
-                <p className="text-sm text-[#8fa29a] mt-1">
+                <p className="text-xs text-white/40 font-mono mt-1">
                   ${plan.pricePerMonth}/month
                 </p>
               )}
-            </div>
-            <p className="text-[#c7d6cf] text-sm mb-6">{plan.description}</p>
+              <p className="mt-2 text-xs text-white/40 font-mono">{plan.description}</p>
 
-            <ul className="space-y-3">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex items-start">
-                  <Check className="h-5 w-5 text-[var(--claw-mint)] mr-2 flex-shrink-0" />
-                  <span className="text-sm">{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            {selectedPlan === plan.id && (
-              <div className="mt-6 p-3 bg-[var(--claw-mint)]/10 rounded-lg text-center">
-                <span className="text-[var(--claw-mint)] font-semibold">Selected</span>
+              <div className="mt-6 space-y-2.5">
+                {plan.features.map((feature) => (
+                  <div key={feature} className="flex items-center gap-2 text-sm text-white/60">
+                    <div className="w-1 h-1 rounded-full bg-red-500" />
+                    <span className="font-mono text-xs">{feature}</span>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-        </Card>
-      ))}
+
+              {isSelected && (
+                <div className="mt-6 p-2.5 rounded-lg border border-red-500/20 bg-red-500/10 text-center">
+                  <span className="text-red-400 font-semibold text-sm flex items-center justify-center gap-1.5">
+                    <Check className="h-4 w-4" /> Selected
+                  </span>
+                </div>
+              )}
+            </div>
+          </Card>
+        )
+      })}
     </div>
   )
 }
