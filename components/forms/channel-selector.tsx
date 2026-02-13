@@ -48,7 +48,7 @@ const availableChannels: Channel[] = [
     fields: [
       { key: 'token', label: 'Bot Token', placeholder: 'Your bot token', type: 'password', required: true },
       { key: 'applicationId', label: 'Application ID', placeholder: 'Your application ID', type: 'text', required: true },
-      { key: 'guilds', label: 'Server IDs (comma-separated, optional)', placeholder: '123456789012345678, 987654321098765432', type: 'text' }
+      { key: 'guilds', label: 'Server IDs (comma-separated)', placeholder: '123456789012345678, 987654321098765432', type: 'text' }
     ],
     helpUrl: 'https://discord.com/developers/applications'
   },
