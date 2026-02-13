@@ -25,6 +25,33 @@ export interface UserConfiguration {
   gatewayToken?: string
 }
 
+/**
+ * Filter out channels that are missing required credentials.
+ * Templates can preset channels the user never configured.
+ */
+function filterConfiguredChannels(channels: UserConfiguration['channels']): UserConfiguration['channels'] {
+  return channels.filter(channel => {
+    switch (channel.type) {
+      case 'TELEGRAM':
+        return !!channel.config.botToken
+      case 'DISCORD':
+        return !!channel.config.token && !!channel.config.applicationId
+      case 'SLACK':
+        return !!channel.config.botToken && !!channel.config.appToken
+      case 'SIGNAL':
+        return !!channel.config.phoneNumber
+      case 'GOOGLE_CHAT':
+        return !!channel.config.serviceAccount
+      case 'MATRIX':
+        return !!channel.config.homeserverUrl && !!channel.config.accessToken
+      case 'WHATSAPP':
+        return true // WhatsApp uses QR pairing, no token needed upfront
+      default:
+        return true
+    }
+  })
+}
+
 export function generateOpenClawConfig(userConfig: UserConfiguration) {
   const normalizeAllowlist = (value: any): string[] => {
     if (!value) return []
@@ -109,8 +136,9 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
     }
   }
 
-  // Configure channels
-  userConfig.channels.forEach(channel => {
+  // Configure channels (skip any that lack required credentials)
+  const configuredChannels = filterConfiguredChannels(userConfig.channels)
+  configuredChannels.forEach(channel => {
     const channelKey = channel.type.toLowerCase()
 
     switch (channel.type) {
@@ -136,6 +164,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
         config.channels.discord = {
           enabled: true,
           token: channel.config.token,
+          applicationId: channel.config.applicationId,
           dm: {
             policy: userConfig.dmPolicy || 'pairing',
             allowFrom: normalizeAllowlist(channel.config.allowlist)
@@ -225,8 +254,9 @@ export function buildEnvironmentVariables(userConfig: UserConfiguration): Record
     env.OPENAI_API_KEY = userConfig.apiKey
   }
 
-  // Add channel-specific tokens
-  userConfig.channels.forEach(channel => {
+  // Add channel-specific tokens (skip unconfigured channels)
+  const configuredChannels = filterConfiguredChannels(userConfig.channels)
+  configuredChannels.forEach(channel => {
     switch (channel.type) {
       case 'TELEGRAM':
         env.TELEGRAM_BOT_TOKEN = channel.config.botToken
