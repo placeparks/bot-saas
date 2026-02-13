@@ -283,7 +283,7 @@ export default function DashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full sm:w-auto border-red-500/20 text-white/60 hover:text-red-400 hover:border-red-500/40 hover:bg-red-500/5 disabled:opacity-30 disabled:text-white/20 transition-all duration-300"
+                    className="w-full sm:w-auto border-red-500/20 text-red-500/70 hover:text-red-400 hover:border-red-500/40 hover:bg-red-500/5 disabled:opacity-30 disabled:text-red-500/30 transition-all duration-300"
                     onClick={btn.action}
                     disabled={btn.disabled}
                   >
