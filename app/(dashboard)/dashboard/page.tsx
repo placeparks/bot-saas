@@ -49,7 +49,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0b0f0d] text-[#e9f3ee]">
+      <div className="min-h-screen flex items-center justify-center bg-[#0b0f0d] text-[#e9f3ee] [--claw-mint:#7df3c6]">
         <div className="text-center">
           <Activity className="h-12 w-12 animate-spin mx-auto mb-4 text-[var(--claw-mint)]" />
           <p className="text-[#a5b7b0]">Loading your dashboard...</p>
