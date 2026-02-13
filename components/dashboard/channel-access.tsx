@@ -370,7 +370,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-red-500/20 text-white/50 hover:text-red-400 hover:border-red-500/40 transition-all"
+                      className="border-red-500/20 text-red-500/50 hover:text-red-400 hover:border-red-500/40 transition-all"
                       asChild
                     >
                       <a href={accessInfo.link} target="_blank" rel="noopener noreferrer">
@@ -384,7 +384,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-red-500/20 text-white/50 hover:text-red-400 hover:border-red-500/40 transition-all"
+                        className="border-red-500/20 text-red-500/50 hover:text-red-400 hover:border-red-500/40 transition-all"
                         onClick={loadPendingRequests}
                         disabled={loadingRequests}
                       >
@@ -393,7 +393,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-red-500/20 text-white/50 hover:text-red-400 hover:border-red-500/40 transition-all"
+                        className="border-red-500/20 text-red-500/50 hover:text-red-400 hover:border-red-500/40 transition-all"
                         onClick={() => {
                           setPairingChannel(channel.type)
                           setPairingCode('')
@@ -409,7 +409,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-red-500/20 text-white/50 hover:text-red-400 hover:border-red-500/40 transition-all"
+                      className="border-red-500/20 text-red-500/50 hover:text-red-400 hover:border-red-500/40 transition-all"
                       onClick={() => copyToClipboard(accessInfo.value)}
                     >
                       <Copy className="h-4 w-4" />
@@ -457,7 +457,7 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                       <p className="text-white/30 text-center text-sm font-mono">QR Code not available yet.<br />Try again in a few seconds.</p>
                     )}
                     {!qrLoading && !qrImage && !qrAsciiImage && qrRaw && (
-                      <pre className="w-full text-[10px] leading-[10px] text-white/50 font-mono whitespace-pre">{qrRaw}</pre>
+                      <pre className="w-full text-[10px] leading-[10px] text-red-500/50 font-mono whitespace-pre">{qrRaw}</pre>
                     )}
                   </div>
                   {qrError && <p className="mt-3 text-xs text-red-400 text-center">{qrError}</p>}
@@ -508,8 +508,8 @@ export default function ChannelAccess({ channels }: ChannelAccessProps) {
                     {pendingRequests.map((req, idx) => (
                       <div key={idx} className="flex items-center justify-between p-3 border border-red-500/10 rounded-lg bg-white/[0.02]">
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-white/70">
-                            Code: <span className="font-mono text-white/50">{req.code}</span>
+                          <p className="text-sm font-medium text-red-500/50">
+                            Code: <span className="font-mono text-red-500/50">{req.code}</span>
                           </p>
                           {req.userId && <p className="text-xs text-white/25 font-mono">User ID: {req.userId}</p>}
                           {req.expires && <p className="text-xs text-white/25 font-mono">Expires: {new Date(req.expires).toLocaleString()}</p>}
