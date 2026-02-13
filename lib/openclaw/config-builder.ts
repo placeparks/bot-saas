@@ -38,7 +38,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
     return []
   }
 
-  const normalizeGuilds = (value: any): Record<string, boolean> | undefined => {
+  const normalizeGuilds = (value: any): Record<string, any> | undefined => {
     if (!value) return undefined
     if (typeof value === 'object' && !Array.isArray(value)) return value
     const ids = Array.isArray(value)
@@ -48,7 +48,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
           .map(v => v.trim())
           .filter(Boolean)
     if (ids.length === 0) return undefined
-    return Object.fromEntries(ids.map(id => [id, true]))
+    return Object.fromEntries(ids.map(id => [id, { enabled: true }]))
   }
 
   const config: any = {
