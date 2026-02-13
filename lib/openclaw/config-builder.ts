@@ -38,6 +38,19 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
     return []
   }
 
+  const normalizeGuilds = (value: any): Record<string, boolean> | undefined => {
+    if (!value) return undefined
+    if (typeof value === 'object' && !Array.isArray(value)) return value
+    const ids = Array.isArray(value)
+      ? value
+      : String(value)
+          .split(',')
+          .map(v => v.trim())
+          .filter(Boolean)
+    if (ids.length === 0) return undefined
+    return Object.fromEntries(ids.map(id => [id, true]))
+  }
+
   const config: any = {
     gateway: {
       bind: 'lan',
@@ -127,7 +140,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
             policy: userConfig.dmPolicy || 'pairing',
             allowFrom: normalizeAllowlist(channel.config.allowlist)
           },
-          ...(channel.config.guilds && { guilds: channel.config.guilds })
+          ...(normalizeGuilds(channel.config.guilds) && { guilds: normalizeGuilds(channel.config.guilds) })
         }
         break
 
