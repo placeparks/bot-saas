@@ -43,6 +43,7 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
       bind: 'lan',
       port: 18789,
       mode: 'local',
+      
       auth: {
         mode: 'token',
         token: userConfig.gatewayToken
@@ -122,7 +123,6 @@ export function generateOpenClawConfig(userConfig: UserConfiguration) {
         config.channels.discord = {
           enabled: true,
           token: channel.config.token,
-          applicationId: channel.config.applicationId,
           dm: {
             policy: userConfig.dmPolicy || 'pairing',
             allowFrom: normalizeAllowlist(channel.config.allowlist)
