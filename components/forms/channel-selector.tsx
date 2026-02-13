@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquare, Send, Hash, Zap, Phone, Mail, Grid, Users } from 'lucide-react'
+import { Send, Hash } from 'lucide-react'
 
 interface ChannelField {
   key: string
@@ -29,6 +29,7 @@ interface Channel {
 }
 
 const availableChannels: Channel[] = [
+  /*
   {
     type: 'WHATSAPP',
     name: 'WhatsApp',
@@ -54,6 +55,7 @@ const availableChannels: Channel[] = [
       { key: 'selfChatMode', label: 'Personal number (self-chat mode)', placeholder: '', type: 'checkbox' }
     ]
   },
+  */
   {
     type: 'TELEGRAM',
     name: 'Telegram',
@@ -78,6 +80,7 @@ const availableChannels: Channel[] = [
     ],
     helpUrl: 'https://discord.com/developers/applications'
   },
+  /*
   {
     type: 'SLACK',
     name: 'Slack',
@@ -129,6 +132,7 @@ const availableChannels: Channel[] = [
       { key: 'appPassword', label: 'App Password', placeholder: 'Your app password', type: 'password', required: true }
     ]
   }
+  */
 ]
 
 interface ChannelSelectorProps {
