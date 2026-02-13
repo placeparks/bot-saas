@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Check, Sparkles, Shield, ArrowRight, ArrowLeft } from 'lucide-react'
+import { Check, Sparkles, Shield, ArrowRight, ArrowLeft, Flame } from 'lucide-react'
 import PlanSelection from '@/components/forms/plan-selection'
 import ProviderConfig from '@/components/forms/provider-config'
 import ChannelSelector from '../../components/forms/channel-selector'
@@ -136,23 +136,22 @@ export default function OnboardPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#0b0f0d] text-[#e9f3ee] [--claw-ink:#0b0f0d] [--claw-mint:#7df3c6] [--claw-ember:#ffb35a] [--claw-glow:rgba(125,243,198,0.28)] py-12"
-      style={{ fontFamily: "'Space Grotesk', 'Sora', 'Poppins', sans-serif" }}
+      className="min-h-screen bg-[#050505] text-white py-12"
+      style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -right-16 h-56 w-56 rounded-full bg-[var(--claw-mint)]/12 blur-3xl" />
-        <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-[var(--claw-ember)]/12 blur-3xl" />
-        <div className="absolute left-1/2 top-32 h-56 w-56 -translate-x-1/2 rounded-full bg-white/5 blur-3xl" />
+        <div className="absolute -top-24 -right-16 h-56 w-56 rounded-full bg-red-500/8 blur-[80px]" />
+        <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-red-500/5 blur-[80px]" />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--claw-mint)]/30 bg-[var(--claw-mint)]/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-[var(--claw-mint)]">
-            <Sparkles className="h-3 w-3" /> onboarding
+          <div className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/5 px-4 py-1 text-[10px] uppercase tracking-[0.3em] text-red-500 font-mono">
+            <Flame className="h-3 w-3" /> onboarding
           </div>
-          <h1 className="mt-6 text-3xl sm:text-4xl md:text-5xl font-semibold">Build your ClawOS agent</h1>
-          <p className="mt-3 text-[#c7d6cf]">
+          <h1 className="mt-6 text-3xl sm:text-4xl md:text-5xl font-bold">Build your <span className="text-red-500">Claw Club</span> agent</h1>
+          <p className="mt-3 text-white/40 font-mono text-sm">
             Five steps. Clear choices. We handle the deploy.
           </p>
         </div>
@@ -164,25 +163,25 @@ export default function OnboardPage() {
               <div key={step.id} className="flex items-center shrink-0 sm:shrink">
                 <div className="flex flex-col items-center min-w-[120px] sm:min-w-0">
                   <div
-                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-semibold transition-colors ${
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-semibold font-mono transition-colors ${
                       currentStep > step.id
-                        ? 'bg-[var(--claw-mint)] text-[#0b0f0d]'
+                        ? 'bg-red-600 text-white'
                         : currentStep === step.id
-                        ? 'bg-white/10 text-[var(--claw-mint)] border border-[var(--claw-mint)]/50'
-                        : 'bg-white/5 text-[#8fa29a] border border-white/10'
+                        ? 'bg-red-500/10 text-red-500 border border-red-500/40'
+                        : 'bg-white/5 text-white/25 border border-white/10'
                     }`}
                   >
                     {currentStep > step.id ? <Check className="h-6 w-6" /> : step.id}
                   </div>
                   <div className="mt-2 text-center">
                     <p className="font-semibold text-xs sm:text-sm">{step.name}</p>
-                    <p className="hidden sm:block text-[11px] sm:text-xs text-[#8fa29a]">{step.description}</p>
+                    <p className="hidden sm:block text-[10px] text-white/25 font-mono">{step.description}</p>
                   </div>
                 </div>
                 {index < steps.length - 1 && (
                   <div
                     className={`hidden sm:block h-1 flex-1 mx-2 rounded-full transition-colors ${
-                      currentStep > step.id ? 'bg-[var(--claw-mint)]' : 'bg-white/10'
+                      currentStep > step.id ? 'bg-red-600' : 'bg-white/10'
                     }`}
                   />
                 )}
@@ -193,10 +192,10 @@ export default function OnboardPage() {
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.45fr] items-start">
           {/* Step Content */}
-          <Card className="border border-white/10 bg-white/5 text-[#e9f3ee] shadow-[0_30px_90px_rgba(0,0,0,0.4)]">
+          <Card className="border border-red-500/15 bg-white/[0.02] text-white shadow-[0_0_60px_rgba(0,0,0,0.4)]">
             <CardHeader>
               <CardTitle>{steps[currentStep - 1].name}</CardTitle>
-              <CardDescription className="text-[#a5b7b0]">{steps[currentStep - 1].description}</CardDescription>
+              <CardDescription className="text-white/40 font-mono text-xs">{steps[currentStep - 1].description}</CardDescription>
             </CardHeader>
             <CardContent>
               {currentStep === 1 && (
@@ -234,41 +233,41 @@ export default function OnboardPage() {
 
           {/* Summary */}
           <div className="space-y-6">
-            <Card className="border border-white/10 bg-white/5 text-[#e9f3ee] shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+            <Card className="border border-red-500/15 bg-white/[0.02] text-white shadow-[0_0_40px_rgba(0,0,0,0.3)]">
               <CardHeader>
                 <CardTitle className="text-lg">Setup summary</CardTitle>
-                <CardDescription className="text-[#9fb1aa]">Quick glance before checkout.</CardDescription>
+                <CardDescription className="text-white/30 font-mono text-xs">Quick glance before checkout.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm text-[#cfe3db]">
+              <CardContent className="space-y-4 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-[#8fa29a]">Template</span>
-                  <span className="font-semibold capitalize">{config.templateId?.replace('-', ' ')}</span>
+                  <span className="text-white/30 font-mono text-xs">Template</span>
+                  <span className="font-semibold text-sm capitalize">{config.templateId?.replace('-', ' ')}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#8fa29a]">Plan</span>
-                  <span className="font-semibold">{config.plan}</span>
+                  <span className="text-white/30 font-mono text-xs">Plan</span>
+                  <span className="font-semibold text-sm">{config.plan}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#8fa29a]">Provider</span>
-                  <span className="font-semibold">
+                  <span className="text-white/30 font-mono text-xs">Provider</span>
+                  <span className="font-semibold text-sm">
                     {currentStep >= 3 ? providerLabel : 'Select in step 3'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#8fa29a]">Channels</span>
-                  <span className="font-semibold">
+                  <span className="text-white/30 font-mono text-xs">Channels</span>
+                  <span className="font-semibold text-sm">
                     {currentStep >= 4 ? (config.channels.length || 0) : 'Select in step 4'}
                   </span>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-[#a5b7b0]">
+                <div className="rounded-lg border border-red-500/10 bg-white/[0.02] px-3 py-2 text-[10px] text-white/25 font-mono">
                   Your deployment starts after payment and completes in a few minutes.
                 </div>
               </CardContent>
             </Card>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-[#a5b7b0]">
+            <div className="rounded-xl border border-red-500/10 bg-white/[0.02] p-4 text-xs text-white/30 font-mono">
               <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-[var(--claw-mint)]" />
+                <Shield className="h-4 w-4 text-red-500/50" />
                 Your keys never leave your private instance.
               </div>
             </div>
@@ -281,19 +280,19 @@ export default function OnboardPage() {
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="w-full sm:w-auto border-[var(--claw-mint)]/40 text-[var(--claw-mint)] hover:border-[var(--claw-mint)]/80 hover:text-[var(--claw-mint)]"
+            className="w-full sm:w-auto border-red-500/30 text-red-500 hover:border-red-500/60 hover:text-red-400 hover:bg-red-500/5"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <div className="order-last w-full sm:order-none sm:w-auto flex items-center gap-3 text-xs text-[#8fa29a]">
-            <Shield className="h-4 w-4 text-[var(--claw-mint)]" />
+          <div className="order-last w-full sm:order-none sm:w-auto flex items-center gap-3 text-[10px] text-white/25 font-mono">
+            <Shield className="h-4 w-4 text-red-500/40" />
             Secure checkout. Cancel any time.
           </div>
           <Button
             onClick={nextStep}
             disabled={loading}
-            className="w-full sm:w-auto bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110"
+            className="w-full sm:w-auto bg-red-600 text-white hover:bg-red-500 shadow-[0_0_20px_rgba(220,38,38,0.2)]"
           >
             {loading ? 'Processing...' : currentStep === steps.length ? 'Proceed to Payment' : 'Next Step'}
             {!loading && <ArrowRight className="h-4 w-4 ml-2" />}
