@@ -12,11 +12,15 @@ const templates = [
     description: 'A helpful support agent that answers questions, resolves issues, and escalates when needed.',
     badge: 'Popular',
     icon: Headphones,
-    chips: ['WHATSAPP', 'TELEGRAM', 'Memory'],
+    chips: [
+      /* 'WHATSAPP', */
+      'TELEGRAM',
+      'Memory'
+    ],
     preset: {
       provider: 'ANTHROPIC',
       channels: [
-        { type: 'WHATSAPP', config: { dmPolicy: 'pairing' } },
+        /* { type: 'WHATSAPP', config: { dmPolicy: 'pairing' } }, */
         { type: 'TELEGRAM', config: {} }
       ],
       memoryEnabled: true
@@ -28,11 +32,18 @@ const templates = [
     description: 'Your all‑purpose AI companion with web search, scheduling, and memory.',
     badge: 'Popular',
     icon: User,
-    chips: ['WHATSAPP', 'TELEGRAM', 'DISCORD', 'Web Search', 'Memory', 'Scheduling'],
+    chips: [
+      /* 'WHATSAPP', */
+      'TELEGRAM',
+      'DISCORD',
+      'Web Search',
+      'Memory',
+      'Scheduling'
+    ],
     preset: {
       provider: 'OPENAI',
       channels: [
-        { type: 'WHATSAPP', config: { dmPolicy: 'pairing' } },
+        /* { type: 'WHATSAPP', config: { dmPolicy: 'pairing' } }, */
         { type: 'TELEGRAM', config: {} },
         { type: 'DISCORD', config: {} }
       ],
@@ -56,6 +67,7 @@ const templates = [
       memoryEnabled: true
     }
   },
+  /*
   {
     id: 'team-collab',
     name: 'Team Collaboration Bot',
@@ -72,6 +84,7 @@ const templates = [
       cronEnabled: true
     }
   },
+  */
   {
     id: 'scratch',
     name: 'Start from Scratch',
