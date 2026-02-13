@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
-import { Check, Bot, Sparkles, Shield, ArrowRight, Menu, X } from 'lucide-react'
+import { Check, Sparkles, Shield, ArrowRight, Menu, X, Flame, Terminal } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
@@ -14,15 +15,14 @@ export default function PricingPage() {
       name: 'Monthly',
       price: 29,
       period: '/month',
-      description: 'Perfect for trying out',
+      description: 'Try it out. Cancel anytime.',
       features: [
         'All features included',
         'Unlimited messages',
-        // 'All channels (WhatsApp, Telegram, Discord, etc.)',
         'Telegram + Discord channels',
         'Skills & extensions',
         'Web search & browser',
-        '24/7 support'
+        'Community access'
       ]
     },
     {
@@ -31,18 +31,17 @@ export default function PricingPage() {
       pricePerMonth: 25,
       period: '/3 months',
       discount: 13,
-      badge: 'Save $12',
+      badge: 'POPULAR',
       popular: true,
-      description: 'Best for short-term projects',
+      description: 'Most popular. Save $12.',
       features: [
         'All features included',
         'Unlimited messages',
-        // 'All channels (WhatsApp, Telegram, Discord, etc.)',
         'Telegram + Discord channels',
         'Skills & extensions',
         'Web search & browser',
         'Priority support',
-        'Save $12'
+        'Price locked forever'
       ]
     },
     {
@@ -51,51 +50,47 @@ export default function PricingPage() {
       pricePerMonth: 24.92,
       period: '/year',
       discount: 14,
-      badge: 'Best Value',
-      description: 'Best value for long-term use',
+      badge: 'BEST VALUE',
+      description: 'Best value. Serious members.',
       features: [
         'All features included',
         'Unlimited messages',
-        // 'All channels (WhatsApp, Telegram, Discord, etc.)',
         'Telegram + Discord channels',
         'Skills & extensions',
         'Web search & browser',
-        'Priority support',
-        'Save $49 annually'
+        'Dedicated support',
+        'Founding member perks'
       ]
     }
   ]
 
   return (
     <div
-      className="min-h-screen bg-[#0b0f0d] text-[#e9f3ee] [--claw-ink:#0b0f0d] [--claw-mint:#7df3c6] [--claw-ember:#ffb35a] [--claw-glow:rgba(125,243,198,0.28)]"
-      style={{ fontFamily: "'Space Grotesk', 'Sora', 'Poppins', sans-serif" }}
+      className="min-h-screen bg-[#050505] text-white"
+      style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
     >
       {/* Header */}
-      <header className="container mx-auto px-6 pt-8">
+      <header className="max-w-6xl mx-auto px-6 pt-8">
         <nav className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl bg-[var(--claw-mint)]/10 border border-[var(--claw-mint)]/30 flex items-center justify-center shadow-[0_0_30px_var(--claw-glow)]">
-              <Bot className="h-6 w-6 text-[var(--claw-mint)]" />
-            </div>
+            <Image src="/openclaw_icon.png" alt="Claw Club" width={36} height={36} className="drop-shadow-[0_0_10px_rgba(220,38,38,0.3)]" />
             <div>
-              <span className="text-2xl font-semibold tracking-tight">ClawOS</span>
-              <div className="text-xs uppercase tracking-[0.3em] text-[var(--claw-mint)]/70">OpenClaw Cloud</div>
+              <span className="text-xl font-bold tracking-tight">Claw Club</span>
+              <div className="text-[9px] uppercase tracking-[0.3em] text-red-500/50 font-mono">Members Only</div>
             </div>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm">
-         {/*   <Link href="/features" className="text-[#c7d6cf] hover:text-white transition">Features</Link>*/}
-            <Link href="/login" className="text-[#c7d6cf] hover:text-white transition">Login</Link>
+            <Link href="/login" className="text-white/40 hover:text-white transition font-mono text-xs">Login</Link>
             <Link
               href="/register"
-              className="bg-[var(--claw-mint)] text-[#0b0f0d] px-5 py-2 rounded-full font-semibold hover:brightness-110 transition shadow-[0_10px_40px_rgba(125,243,198,0.2)]"
+              className="bg-red-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-red-500 transition shadow-[0_0_20px_rgba(220,38,38,0.2)]"
             >
               Get Started
             </Link>
           </div>
           <button
             type="button"
-            className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-[var(--claw-mint)]"
+            className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg border border-red-500/20 bg-red-500/5 text-red-500"
             aria-label="Toggle navigation"
             onClick={() => setMobileOpen((prev) => !prev)}
           >
@@ -103,14 +98,12 @@ export default function PricingPage() {
           </button>
         </nav>
         {mobileOpen && (
-          <div className="mt-4 rounded-2xl border border-white/10 bg-[#0f1713] p-4 md:hidden">
-            <div className="flex flex-col gap-3 text-sm">
-             { /*<Link href="/features" className="text-[#c7d6cf] hover:text-white transition" onClick={() => setMobileOpen(false)}>Features</Link>*/}
-              <Link href="/pricing" className="text-[#c7d6cf] hover:text-white transition" onClick={() => setMobileOpen(false)}>Pricing</Link>
-              <Link href="/login" className="text-[#c7d6cf] hover:text-white transition" onClick={() => setMobileOpen(false)}>Login</Link>
+          <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/[0.03] p-4 md:hidden">
+            <div className="flex flex-col gap-3 text-sm font-mono">
+              <Link href="/login" className="text-white/40 hover:text-white transition" onClick={() => setMobileOpen(false)}>Login</Link>
               <Link
                 href="/register"
-                className="mt-2 inline-flex items-center justify-center rounded-full bg-[var(--claw-mint)] px-5 py-2 font-semibold text-[#0b0f0d] hover:brightness-110 transition"
+                className="mt-2 inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2 font-semibold text-white hover:bg-red-500 transition"
                 onClick={() => setMobileOpen(false)}
               >
                 Get Started
@@ -120,32 +113,32 @@ export default function PricingPage() {
         )}
       </header>
 
-      <main className="container mx-auto px-6 py-16">
-        <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-[#0f1713] via-[#0b0f0d] to-[#0b0f0d] p-10 md:p-14 shadow-[0_40px_120px_rgba(0,0,0,0.45)]">
-          <div className="absolute -top-24 -right-16 h-56 w-56 rounded-full bg-[var(--claw-mint)]/15 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-[var(--claw-ember)]/15 blur-3xl" />
+      <main className="max-w-6xl mx-auto px-6 py-16">
+        <div className="relative overflow-hidden rounded-xl border border-red-500/20 bg-gradient-to-br from-red-500/[0.06] via-[#0a0a0a] to-[#050505] p-10 md:p-14">
+          <div className="absolute -top-24 -right-16 h-56 w-56 rounded-full bg-red-500/10 blur-[80px]" />
           <div className="relative grid lg:grid-cols-[1.2fr_0.8fr] gap-10 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--claw-mint)]/30 bg-[var(--claw-mint)]/10 px-4 py-1 text-xs uppercase tracking-[0.3em] text-[var(--claw-mint)]">
-                <Sparkles className="h-3 w-3" /> pricing
+              <div className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/5 px-4 py-1 text-[10px] uppercase tracking-[0.3em] text-red-500 font-mono mb-4">
+                <Flame className="h-3 w-3" /> pricing
               </div>
-              <h1 className="mt-6 text-4xl md:text-5xl font-semibold">Simple, premium plans for ClawOS</h1>
-              <p className="mt-4 text-[#c7d6cf]">
-                All plans include full OpenClaw functionality, private instances, and multi‑channel support.
+              <h1 className="text-4xl md:text-5xl font-bold">
+                Simple plans for <span className="text-red-500">Claw Club</span>
+              </h1>
+              <p className="mt-4 text-white/40 font-mono text-sm">
+                All plans include full OpenClaw functionality, private instances, and multi-channel support.
               </p>
-              <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-[#a5b7b0]">
-                <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-[var(--claw-mint)]" /> Private containers</div>
-                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-[var(--claw-mint)]" /> Unlimited messages</div>
-                {/* <div className="flex items-center gap-2"><Check className="h-4 w-4 text-[var(--claw-mint)]" /> All channels</div> */}
-                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-[var(--claw-mint)]" /> Telegram + Discord</div>
+              <div className="mt-6 flex flex-wrap items-center gap-4 text-xs font-mono text-white/30">
+                <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-red-500/50" /> Private containers</div>
+                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-red-500/50" /> Unlimited messages</div>
+                <div className="flex items-center gap-2"><Check className="h-4 w-4 text-red-500/50" /> Telegram + Discord</div>
               </div>
             </div>
-            <div className="rounded-[26px] border border-white/10 bg-white/5 p-6 text-sm text-[#cfe3db]">
-              <div className="text-xs uppercase tracking-[0.2em] text-[#8fb3a6]">Included</div>
-              <ul className="mt-4 space-y-2">
+            <div className="rounded-xl border border-red-500/15 bg-white/[0.02] p-6 text-sm">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-red-500/50 font-mono">Included</div>
+              <ul className="mt-4 space-y-2 text-white/50 font-mono text-xs">
                 {['OpenClaw gateway', 'Channel pairing', 'Skills & extensions', 'Web search & browser', 'Secure keys'].map(item => (
                   <li key={item} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-[var(--claw-mint)]" /> {item}
+                    <div className="w-1 h-1 rounded-full bg-red-500" /> {item}
                   </li>
                 ))}
               </ul>
@@ -157,34 +150,34 @@ export default function PricingPage() {
           {plans.map((plan) => (
             <Card
               key={plan.name}
-              className={`relative rounded-[26px] border border-white/10 bg-white/5 p-6 text-[#e9f3ee] ${
-                plan.popular ? 'ring-1 ring-[var(--claw-mint)]/60 shadow-[0_20px_60px_rgba(0,0,0,0.35)]' : ''
+              className={`relative rounded-xl border bg-white/[0.02] p-6 text-white ${
+                plan.popular ? 'border-red-500/40 bg-red-500/[0.04] shadow-[0_0_30px_rgba(220,38,38,0.1)]' : 'border-red-500/15'
               }`}
             >
               {plan.badge && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-[var(--claw-mint)] text-[#0b0f0d] px-4 py-1">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <Badge className="bg-red-600 text-white px-3 py-1 text-[10px] font-mono uppercase tracking-wider border-0">
                     {plan.badge}
                   </Badge>
                 </div>
               )}
 
               <div className="mb-6">
-                <h3 className="text-xl font-semibold">{plan.name}</h3>
-                <p className="mt-1 text-sm text-[#a5b7b0]">{plan.description}</p>
+                <h3 className="text-xs font-mono text-red-500/60 uppercase tracking-wider">{plan.name}</h3>
+                <p className="mt-1 text-xs text-white/30 font-mono">{plan.description}</p>
                 <div className="mt-4 flex items-end gap-2">
-                  <span className="text-4xl font-semibold">${plan.price}</span>
-                  <span className="text-sm text-[#a5b7b0]">{plan.period}</span>
+                  <span className="text-4xl font-bold">${plan.price}</span>
+                  <span className="text-sm text-white/30 font-mono mb-1">{plan.period}</span>
                 </div>
                 {plan.pricePerMonth && (
-                  <p className="text-xs text-[#8fa29a] mt-2">${plan.pricePerMonth}/month effective</p>
+                  <p className="text-[10px] text-white/25 mt-2 font-mono">${plan.pricePerMonth}/month effective</p>
                 )}
               </div>
 
-              <ul className="space-y-3 mb-6">
+              <ul className="space-y-2.5 mb-6">
                 {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start text-sm text-[#cfe3db]">
-                    <Check className="h-4 w-4 text-[var(--claw-mint)] mr-2 mt-0.5" />
+                  <li key={index} className="flex items-start text-xs text-white/50 font-mono">
+                    <div className="w-1 h-1 rounded-full bg-red-500 mr-2 mt-1.5 shrink-0" />
                     <span>{feature}</span>
                   </li>
                 ))}
@@ -192,10 +185,10 @@ export default function PricingPage() {
 
               <Link
                 href="/register"
-                className={`block w-full text-center py-2 rounded-full text-sm font-semibold transition ${
+                className={`block w-full text-center py-2.5 rounded-lg text-sm font-semibold font-mono transition-all duration-300 ${
                   plan.popular
-                    ? 'bg-[var(--claw-mint)] text-[#0b0f0d] hover:brightness-110'
-                    : 'border border-white/15 text-[#e9f3ee] hover:border-[var(--claw-mint)]/60'
+                    ? 'bg-red-600 text-white hover:bg-red-500 shadow-[0_0_20px_rgba(220,38,38,0.2)]'
+                    : 'border border-red-500/30 text-red-400 hover:bg-red-500/10'
                 }`}
               >
                 Get Started <ArrowRight className="inline h-4 w-4 ml-1" />
@@ -206,32 +199,27 @@ export default function PricingPage() {
 
         {/* FAQ */}
         <div className="mt-16 max-w-3xl mx-auto">
-          <h2 className="text-3xl font-semibold text-center">Frequently asked</h2>
-          <div className="mt-10 space-y-6 text-[#c7d6cf]">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <h3 className="font-semibold text-white">Can I change plans later?</h3>
-              <p className="mt-2 text-sm">Yes. Upgrade or downgrade any time from your dashboard.</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <h3 className="font-semibold text-white">Do you offer refunds?</h3>
-              <p className="mt-2 text-sm">We offer a 7‑day money‑back guarantee.</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <h3 className="font-semibold text-white">What payment methods do you accept?</h3>
-              <p className="mt-2 text-sm">All major cards via Stripe.</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <h3 className="font-semibold text-white">Any hidden fees?</h3>
-              <p className="mt-2 text-sm">No. AI provider API costs are billed directly by them.</p>
-            </div>
+          <h2 className="text-3xl font-bold text-center">Frequently <span className="text-red-500">Asked</span></h2>
+          <div className="mt-10 space-y-3">
+            {[
+              { q: 'Can I change plans later?', a: 'Yes. Upgrade or downgrade any time from your dashboard.' },
+              { q: 'Do you offer refunds?', a: 'We offer a 7-day money-back guarantee.' },
+              { q: 'What payment methods do you accept?', a: 'All major cards via Stripe.' },
+              { q: 'Any hidden fees?', a: 'No. AI provider API costs are billed directly by them.' },
+            ].map((item) => (
+              <div key={item.q} className="rounded-xl border border-red-500/15 bg-white/[0.02] p-5 hover:border-red-500/30 transition-colors">
+                <h3 className="font-semibold text-white/80 text-sm">{item.q}</h3>
+                <p className="mt-2 text-xs text-white/40 font-mono">{item.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="mt-16 border-t border-white/10 py-10">
-        <div className="container mx-auto px-6 text-center text-xs text-[#8fa29a]">
-          <p>&copy; 2026 ClawOS. Built on OpenClaw. All rights reserved.</p>
+      <footer className="mt-16 border-t border-red-500/10 py-10">
+        <div className="max-w-6xl mx-auto px-6 text-center text-xs font-mono text-white/20">
+          <p>&copy; 2026 Claw Club. Built on OpenClaw. All rights reserved.</p>
         </div>
       </footer>
     </div>
